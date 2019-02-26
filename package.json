@@ -1,0 +1,19 @@
+{
+  "name": "boo-led",
+  "version": "1.0.0",
+  "description": "My own version of Philips Hue lightstrips using NodeJS, socket.io, raspberry pis, and LED strips",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jwb81/Boo-LED.git"
+  },
+  "author": "Jason Barnett",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Jwb81/Boo-LED/issues"
+  },
+  "homepage": "https://github.com/Jwb81/Boo-LED#readme"
+}
