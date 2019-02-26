@@ -16,18 +16,7 @@ const PORT = 3000;
 
 const digitalOn = 1;
 const digitalOff = 0;
-const remotes = [
-    // id 0 is the onboard LEDS
-    {
-        id: 0,
-        socket: null,
-        red: new Gpio(17, { mode: Gpio.OUTPUT }),
-        green: new Gpio(22, { mode: Gpio.OUTPUT }),
-        blue: new Gpio(24, { mode: Gpio.OUTPUT }),
-        groups: []
-    }
-];
-const remoteTemplate = {
+const lightTemplate = {
     id: null,
     socket: null,
     red: 0,
@@ -36,8 +25,27 @@ const remoteTemplate = {
     groups: []
 }
 
+const db = {
+    lights: [
+        // id 0 is the onboard LEDS
+        {
+            id: 0,
+            name: `Jason's Room`,
+            socket: null,
+            red: new Gpio(17, { mode: Gpio.OUTPUT }),
+            green: new Gpio(22, { mode: Gpio.OUTPUT }),
+            blue: new Gpio(24, { mode: Gpio.OUTPUT }),
+            groups: []
+        }
+    ],
+    scenes: []
+}
+
 
 app.use(express.static(__dirname));
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+})
 
 
 // read and write pi and RGB values locally instead of using a database for now
@@ -57,47 +65,45 @@ const readJson = async (filename) => {
 }
 
 const updateRemote = (data) => {
-    const { id, red, green, blue } = data;
-    
-    // change this remote pi's values in the global object
-    remotes = remotes.map(r => {
-        if (r.id === id) {
-            r.red = red;
-            r.green = green;
-            r.blue = blue;
-        }
-        return r;
-    });
+    const { lights, rgb } = data;
+
+    if (lights.includes(0)) {
+        changeOnboardLeds(rgb);
+    }
 }
 
 const turnOnboardLedsOff = () => {
-    const onboard = remotes.find(led => led.id === 0);
+    const onboard = db.lights.find(led => led.id === 0);
     onboard.red.digitalWrite(digitalOff);
     onboard.green.digitalWrite(digitalOff);
     onboard.blue.digitalWrite(digitalOff);
 }
 
 const changeOnboardLeds = (rgb) => {
-    const onboard = remotes.find(led => led.id === 0);
+    const onboard = db.lights.find(led => led.id === 0);
     onboard.red.pwmWrite(rgb.red);
     onboard.green.pwmWrite(rgb.green);
     onboard.blue.pwmWrite(rgb.blue);
 }
 
 // listen for sockets
-io.sockets.on('connection', (socket) => {
+io.on('connection', (socket) => {
+    console.log('socket connected!')
+    socket.emit('info', { db });
+
     // inital hit after connection
     socket.on('setId', data => {
         const { id } = data;
+        console.log(data)
 
         // make sure this id is not in the global object already
-        const idx = remotes.find(r => r.id === id);
-        if (idx) {
-            console.log('Duplicate remote ID found...')
-        }
+        // const idx = db.lights.find(r => r.id === id);
+        // if (idx) {
+        //     console.log('Duplicate remote ID found...')
+        // }
 
         // send back values for this id, if there are any
-        
+
     })
 
     // update values for a remote pi
@@ -112,7 +118,7 @@ io.sockets.on('connection', (socket) => {
 turnOnboardLedsOff();
 
 // start the main server 
-app.listen(PORT, () => {
+http.listen(PORT, () => {
     console.log(`Boo-LED listening on port ${PORT}`);
 })
 
