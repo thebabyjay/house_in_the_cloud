@@ -2,6 +2,7 @@ const express   = require('express');
 const fs        = require('fs');
 // const http      = require('http');
 const io        = require('socket.io');
+const Gpio      = require('pigpio').Gpio;
 
 const writeData = {
     name: 'Jason',
@@ -12,7 +13,19 @@ let readData;
 const PORT = 3000;
 const app = express();
 
-const remotes = [];
+const digitalOn = 1;
+const digitalOff = 0;
+const remotes = [
+    // id 0 is the onboard LEDS
+    {
+        id: 0,
+        socket: null,
+        red: new Gpio(17, { mode: Gpio.OUTPUT }),
+        green: new Gpio(22, { mode: Gpio.OUTPUT }),
+        blue: new Gpio(24, { mode: Gpio.OUTPUT }),
+        groups: []
+    }
+];
 const remoteTemplate = {
     id: null,
     socket: null,
@@ -52,6 +65,20 @@ const updateRemote = (data) => {
     });
 }
 
+const turnOnboardLedsOff = () => {
+    const onboard = remotes.find(led => led.id === 0);
+    onboard.red.digitalWrite(digitalOff);
+    onboard.green.digitalWrite(digitalOff);
+    onboard.blue.digitalWrite(digitalOff);
+}
+
+const changeOnboardLeds = (rgb) => {
+    const onboard = remotes.find(led => led.id === 0);
+    onboard.red.pwmWrite(rgb.red);
+    onboard.green.pwmWrite(rgb.green);
+    onboard.blue.pwmWrite(rgb.blue);
+}
+
 // listen for sockets
 io.on('connection', (socket) => {
     // inital hit after connection
@@ -71,6 +98,12 @@ io.on('connection', (socket) => {
     socket.on('update', updateRemote);
 })
 
+
+
+/**
+ * STARTUP FUNCTIONS
+ */
+turnOnboardLedsOff();
 
 // start the main server 
 app.listen(PORT, () => {
