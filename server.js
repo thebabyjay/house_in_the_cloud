@@ -1,7 +1,9 @@
 const express   = require('express');
+const app       = express();
+const http      = require('http').Server(app);
 const fs        = require('fs');
 // const http      = require('http');
-const io        = require('socket.io');
+const io        = require('socket.io')(http);
 const Gpio      = require('pigpio').Gpio;
 
 const writeData = {
@@ -11,7 +13,6 @@ const writeData = {
 let readData;
 
 const PORT = 3000;
-const app = express();
 
 const digitalOn = 1;
 const digitalOff = 0;
@@ -34,6 +35,10 @@ const remoteTemplate = {
     blue: 0,
     groups: []
 }
+
+
+app.use(express.static(__dirname));
+
 
 // read and write pi and RGB values locally instead of using a database for now
 const writeJson = async (filename, data) => {
@@ -80,7 +85,7 @@ const changeOnboardLeds = (rgb) => {
 }
 
 // listen for sockets
-io.on('connection', (socket) => {
+io.sockets.on('connection', (socket) => {
     // inital hit after connection
     socket.on('setId', data => {
         const { id } = data;
@@ -92,6 +97,7 @@ io.on('connection', (socket) => {
         }
 
         // send back values for this id, if there are any
+        
     })
 
     // update values for a remote pi
@@ -109,3 +115,9 @@ turnOnboardLedsOff();
 app.listen(PORT, () => {
     console.log(`Boo-LED listening on port ${PORT}`);
 })
+
+// listen for ctrl + c
+process.on('SIGINT', function () {
+    turnOnboardLedsOff();
+    process.exit();
+});

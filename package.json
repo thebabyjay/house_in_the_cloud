@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/Jwb81/Boo-LED/issues"
   },
-  "homepage": "https://github.com/Jwb81/Boo-LED#readme"
+  "homepage": "https://github.com/Jwb81/Boo-LED#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "pigpio": "^1.2.1",
+    "socket.io": "^2.2.0",
+    "socket.io-client": "^2.2.0"
+  }
 }
