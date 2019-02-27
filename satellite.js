@@ -50,9 +50,9 @@ socket.on('connect', function() {
     socket.emit('init', { id: remoteId });
 })
 
-socket.on('info', function(data) {
-    console.log(data)
-})
+// socket.on('info', function(data) {
+//     console.log(data)
+// })
 
 socket.on('change-leds', function(data) {
     const { lights, rgb } = data;
