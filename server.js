@@ -18,25 +18,42 @@ const digitalOn = 1;
 const digitalOff = 0;
 const lightTemplate = {
     id: null,
+    name: 'New light...',
     socket: null,
-    red: 0,
-    green: 0,
-    blue: 0,
     groups: []
 }
+
+const onboardLeds = {
+    red: new Gpio(17, { mode: Gpio.OUTPUT }),
+    green: new Gpio(22, { mode: Gpio.OUTPUT }),
+    blue: new Gpio(24, { mode: Gpio.OUTPUT }),
+}
+
+const sockets = {};
 
 const db = {
     lights: [
         // id 0 is the onboard LEDS
         {
             id: 0,
-            name: `Jason's Room`,
-            socket: null,
-            red: new Gpio(17, { mode: Gpio.OUTPUT }),
-            green: new Gpio(22, { mode: Gpio.OUTPUT }),
-            blue: new Gpio(24, { mode: Gpio.OUTPUT }),
+            name: `Jason's Room 16ft`,
+            rgb: {
+                r: 0,
+                g: 0,
+                b: 0,
+            },
             groups: []
-        }
+        },
+        {
+            id: 1,
+            name: `Jason's Room 4ft`,
+            rgb: {
+                r: 0,
+                g: 0,
+                b: 0,
+            },
+            groups: []
+        },
     ],
     scenes: []
 }
@@ -70,37 +87,42 @@ const updateRemote = (data) => {
     if (lights.includes(0)) {
         changeOnboardLeds(rgb);
     }
+
+    // db.lights = db.lights.map(l => {
+    //     if (lights.includes(l.id)) {
+
+    //     }
+    // })
+
+    io.emit('change-leds', data);
 }
 
 const turnOnboardLedsOff = () => {
-    const onboard = db.lights.find(led => led.id === 0);
-    onboard.red.digitalWrite(digitalOff);
-    onboard.green.digitalWrite(digitalOff);
-    onboard.blue.digitalWrite(digitalOff);
+    onboardLeds.red.digitalWrite(digitalOff);
+    onboardLeds.green.digitalWrite(digitalOff);
+    onboardLeds.blue.digitalWrite(digitalOff);
 }
 
 const changeOnboardLeds = (rgb) => {
-    const onboard = db.lights.find(led => led.id === 0);
-    onboard.red.pwmWrite(rgb.red);
-    onboard.green.pwmWrite(rgb.green);
-    onboard.blue.pwmWrite(rgb.blue);
+    onboardLeds.red.pwmWrite(rgb.red);
+    onboardLeds.green.pwmWrite(rgb.green);
+    onboardLeds.blue.pwmWrite(rgb.blue);
 }
 
 // listen for sockets
 io.on('connection', (socket) => {
-    console.log('socket connected!')
-    socket.emit('info', { db });
+    try {
+        socket.emit('info', { db });    
+    } catch (e) {
+        console.log(e)
+    }
 
     // inital hit after connection
-    socket.on('setId', data => {
+    socket.on('init', data => {
         const { id } = data;
-        console.log(data)
 
-        // make sure this id is not in the global object already
-        // const idx = db.lights.find(r => r.id === id);
-        // if (idx) {
-        //     console.log('Duplicate remote ID found...')
-        // }
+        // update in db or create new
+        sockets[id] = socket;
 
         // send back values for this id, if there are any
 
