@@ -38,9 +38,9 @@ const db = {
             id: 0,
             name: `Jason's Room 16ft`,
             rgb: {
-                r: 0,
-                g: 0,
-                b: 0,
+                red: 0,
+                green: 0,
+                blue: 0,
             },
             groups: []
         },
@@ -48,9 +48,9 @@ const db = {
             id: 1,
             name: `Jason's Room 4ft`,
             rgb: {
-                r: 0,
-                g: 0,
-                b: 0,
+                red: 0,
+                green: 0,
+                blue: 0,
             },
             groups: []
         },
@@ -88,11 +88,15 @@ const updateRemote = (data) => {
         changeOnboardLeds(rgb);
     }
 
-    // db.lights = db.lights.map(l => {
-    //     if (lights.includes(l.id)) {
-
-    //     }
-    // })
+    const { red, green, blue } = rgb;
+    db.lights = db.lights.map(l => {
+        if (lights.includes(l.id)) {
+            l.red = red;
+            l.green = green;
+            l.blue = blue;
+        }
+        return l;
+    })
 
     io.emit('change-leds', data);
 }
@@ -108,6 +112,8 @@ const changeOnboardLeds = (rgb) => {
     onboardLeds.green.pwmWrite(rgb.green);
     onboardLeds.blue.pwmWrite(rgb.blue);
 }
+
+
 
 // listen for sockets
 io.on('connection', (socket) => {
