@@ -20,10 +20,11 @@ const digitalOff = 0;
 const sockets = {};
 const db = {
     lights: [
-        // id 0 is the onboard LEDS
+        // id 1 is the onboard LEDS
         {
-            id: 0,
+            id: 1,
             name: `Jason's Room 16ft`,
+            active: false,
             rgb: {
                 red: 0,
                 green: 0,
@@ -32,8 +33,9 @@ const db = {
             groups: []
         },
         {
-            id: 1,
+            id: 2,
             name: `Jason's Room 4ft`,
+            active: false,
             rgb: {
                 red: 0,
                 green: 0,
@@ -58,6 +60,7 @@ if (prod) {
 const remoteTemplate = {
     id: null,
     name: ``,
+    active: false,
     rgb: {
         red: 0,
         green: 0,
@@ -97,7 +100,7 @@ const updateRemote = (data) => {
 
     // change this remote pi's values in the global object
     const { red, green, blue } = rgb;
-    remotes = db.lights.map(l => {
+    db.lights = db.lights.map(l => {
         if (lights.includes(l.id)) {
             l.red = red;
             l.green = green;
@@ -105,7 +108,32 @@ const updateRemote = (data) => {
         }
         return l;
     });
+
+    // send the value to all affected satellites
+    lights.forEach(id => {
+        if (sockets[id]) {
+            sockets[id].emit('change-leds', { data })
+        }
+    })    
 }
+
+
+const updateLightStatus = data => {
+    const { id } = data;
+    const lightIdx = db.lights.findIndex(l => l.id === id);
+
+    if (db.lights[lightIdx].active) {
+        db.lights[lightIdx].active = false;
+    } else {
+        db.lights[lightIdx].active = true;
+    }
+
+    io.emit('new-light-status', {
+        id,
+        active: db.lights[lightIdx].active
+    })
+}
+
 
 const turnOnboardLedsOff = () => {
     if (!prod) { return }
@@ -125,30 +153,36 @@ const changeOnboardLeds = (rgb) => {
 
 // listen for sockets
 io.sockets.on('connection', (socket) => {
-    // send initial data
-    socket.emit('browser-init', { ...db })
-
+    /**
+     * SATELLITE CONNECTION SOCKETS
+     */
+    
+    // inital hit after connection
+    socket.on('setId', data => {
+        const { id } = data;
+        sockets[id] = socket;
+    });
+    
     socket.on('satellite-init', data => {
         console.log(data)
     });
 
+    
+    
+    
+    /**
+     * BROWSER CONNECTION SOCKETS
+     */
+    
+    // send initial data
+    socket.emit('browser-reset', { ...db })
 
-    // inital hit after connection
-    socket.on('setId', data => {
-        const { id } = data;
-
-        // make sure this id is not in the global object already
-        const idx = remotes.find(r => r.id === id);
-        if (idx) {
-            console.log('Duplicate remote ID found...')
-        }
-
-        // send back values for this id, if there are any
-        
-    })
-
-    // update values for a remote pi
     socket.on('update', updateRemote);
+
+    socket.on('update-light-status', updateLightStatus)
+    
+
+
 })
 
 

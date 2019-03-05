@@ -3,32 +3,45 @@
     <h1>Your Lights</h1>
     <div class="lights-container">
     <v-container>
-      <v-layout row  wrap justify-start>
+      <v-layout row wrap justify-start>
         <light 
           v-for='light in lights' 
           :key='light.id' 
           :light='light' 
           :selectedArr='selectedLights' 
           :selected='selectedLights.includes(light.id)'
-          :toggleLightClick='toggleLightClick'
+          :handleLightClick='handleLightClick'
         />
       </v-layout>
     </v-container>
       
     </div>
 
-    <p>Active: <input type='checkbox' value='active' id='active' checked></p>
-    <p><input type="range" min="0" max="255" value="0" class="slider" id="redSlider"></p>
-    <p><input type="range" min="0" max="255" value="0" class="slider" id="greenSlider"></p>
-    <p><input type="range" min="0" max="255" value="0" class="slider" id="blueSlider"></p>
-    <hr>
+    <v-container>
+      <v-layout row justify-center align-center>
+        <v-flex xs10>
+          <input type="range" min="0" max="255" v-model='redSliderValue' class="slider" id="redSlider">
+        </v-flex>
+      </v-layout>
+      <v-layout row justify-center align-center>
+        <v-flex xs10>
+          <input type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
+        </v-flex>
+      </v-layout>
+      <v-layout row justify-center align-center>
+        <v-flex xs10>
+          <input type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
+        </v-flex>
+      </v-layout>
+    </v-container>
+    <!-- <hr> -->
 
     
-    <hr>
+    <!-- <hr>
     <h1>Your Scenes</h1>
     <div class="scenes-container">
- 
-    </div>
+      
+    </div> -->
   </div>
 </template>
 
@@ -47,41 +60,87 @@ export default {
       lights: [],
       scenes: [],
       groups: [],
-      selectedLights: []
+      selectedLights: [],
+
+      redSliderValue: 0,
+      greenSliderValue: 0,
+      blueSliderValue: 0,
     }
   },
 
-  computed: {
-
+  watch: {
+    redSliderValue: function(val) {
+      this.runLights();
+    },
+    greenSliderValue: function(val) {
+      this.runLights();
+    },
+    blueSliderValue: function(val) {
+      this.runLights();
+    }
   },
 
   mounted() {
-    this.socket.on('browser-init', data => {
+    // re-instantiate the lights and scenes
+    this.socket.on('browser-reset', data => {
       const { lights, scenes } = data;
       this.lights = lights;
       this.scenes = scenes;
     })
+
+    // set a light button that could have been changed by another user
+    this.socket.on('new-light-status', data => {
+      const { id, active } = data;
+      const found = this.selectedLights.find(val => val === id);
+      if (found && !active) {
+        this.selectedLights = this.selectedLights.filter(val => val !== id);
+      } else if (!found && active) {
+        this.selectedLights = this.selectedLights.concat(id);
+      }
+    })
   },
 
   methods: {
-    sendChange: function() {
-      console.log('sending change')
+    runLights: function() {
+      this.socket.emit('update', {
+        lights: this.selectedLights,
+        rgb: {
+          red: this.redSliderValue,
+          green: this.greenSliderValue,
+          blue: this.blueSliderValue,
+        }
+      })
     },
 
-    toggleLightClick: function(id) {
-      const found = this.selectedLights.find(val => val === id);
-      if (found !== undefined) {
-        this.selectedLights = this.selectedLights.filter(val => val !== id);
-      } else {
-        this.selectedLights = this.selectedLights.concat(id);
-      }
-    }
+    emitLightToggle: function(id) {
+
+    },
+
+
+
+
+    // EVENT HANDLERS
+    handleLightClick: function(id) {
+      this.socket.emit('update-light-status', { id });
+      // const found = this.selectedLights.find(val => val === id);
+      // if (found !== undefined) {
+      //   this.selectedLights = this.selectedLights.filter(val => val !== id);
+      // } else {
+      //   this.selectedLights = this.selectedLights.concat(id);
+      // }
+    },
+
   }
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.wrapper {
+  padding-top: 50px;
+  color: white;
+}
+
 .lights-container {
   display: flex;
   flex-direction: row;
@@ -102,13 +161,14 @@ export default {
 .slider {
     -webkit-appearance: none;
     width: 100%;
-    height: 15px;
+    height: 20px;
     border-radius: 5px;
     background: #d3d3d3;
     outline: none;
     opacity: 0.7;
     -webkit-transition: .2s;
     transition: opacity .2s;
+    margin: 15px 0;
   }
   
   .slider:hover {opacity: 1;}
@@ -116,15 +176,15 @@ export default {
   .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 25px;
-    height: 25px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     cursor: pointer;
   }
 
   .slider::-moz-range-thumb {
-    width: 25px;
-    height: 25px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     background: #4CAF50;
     cursor: pointer;
