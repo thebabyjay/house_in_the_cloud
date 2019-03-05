@@ -1,73 +1,140 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div class="wrapper">
+    <h1>Your Lights</h1>
+    <div class="lights-container">
+    <v-container>
+      <v-layout row wrap>
+
+      </v-layout>
+    </v-container>
+      <light 
+        v-for='light in lights' 
+        :key='light.id' 
+        :light='light' 
+        :selectedArr='selectedLights' 
+        :selected='selectedLights.includes(light.id)'
+        :toggleLightClick='toggleLightClick'
+      />
+      
+    </div>
+
+    <p>Active: <input type='checkbox' value='active' id='active' checked></p>
+    <p><input type="range" min="0" max="255" value="0" class="slider" id="redSlider"></p>
+    <p><input type="range" min="0" max="255" value="0" class="slider" id="greenSlider"></p>
+    <p><input type="range" min="0" max="255" value="0" class="slider" id="blueSlider"></p>
+    <hr>
+
+    
+    <hr>
+    <h1>Your Scenes</h1>
+    <div class="scenes-container">
+ 
+    </div>
   </div>
 </template>
 
 <script>
 import io from 'socket.io-client';
-// const socket = io('localhost:3000');
-const socket = io('localhost:3000', {
-  extraHeaders: {
-    'Access-Control-Allow-Credentials': 'omit'
-  }
-});
-
-// console.log(io)
-// const socket = io('http://localhost:3000');
-socket.on('hello', data => {
-  console.log(data)
-})
-// console.log(socket);
+import Light from './Light';
 
 export default {
   name: 'Home',
-  props: {
-    msg: String,
+  components: {
+    Light
   },
+  data() {
+    return {
+      socket: io('localhost:3000'),
+      lights: [],
+      scenes: [],
+      groups: [],
+      selectedLights: []
+    }
+  },
+
+  computed: {
+
+  },
+
+  mounted() {
+    this.socket.on('browser-init', data => {
+      const { lights, scenes } = data;
+      this.lights = lights;
+      this.scenes = scenes;
+    })
+  },
+
+  methods: {
+    sendChange: function() {
+      console.log('sending change')
+    },
+
+    toggleLightClick: function(id) {
+      const found = this.selectedLights.find(val => val === id);
+      if (found !== undefined) {
+        this.selectedLights = this.selectedLights.filter(val => val !== id);
+      } else {
+        this.selectedLights = this.selectedLights.concat(id);
+      }
+    }
+  }
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
+.lights-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+
+.light-row {
+  padding: 15px;
+  border: 1px solid gray;
+  background-color: rgba(0,0,0,0.2);
+  cursor: pointer;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
+.light-row-active {
+  background-color: rgba(0,150,0,0.6);
 }
-a {
-  color: #42b983;
-}
+
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 15px;
+    border-radius: 5px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+  }
+  
+  .slider:hover {opacity: 1;}
+  
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+  }
+  #redSlider::-webkit-slider-thumb {background: red;}
+  #redSlider::-moz-range-thumb {background: red;}
+  #greenSlider::-webkit-slider-thumb {background: green;}
+  #greenSlider::-moz-range-thumb {background: green;}
+  #blueSlider::-webkit-slider-thumb {background: blue;}
+  #blueSlider::-moz-range-thumb {background: blue;}
+
 </style>
