@@ -111,9 +111,11 @@ const updateRemote = (data) => {
 
     // send the value to all affected satellites
     lights.forEach(id => {
-        if (sockets[id]) {
-            sockets[id].emit('change-leds', { data })
-        }
+        const lightIdx = db.lights.find(l => l.id === id);
+        sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb });
+        // if (sockets[id]) {
+        //     sockets[id].emit('change-leds', { data })
+        // }
     })    
 }
 
@@ -132,6 +134,9 @@ const updateLightStatus = data => {
         id,
         active: db.lights[lightIdx].active
     })
+
+    // set the light to off or its previous value
+    sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb });
 }
 
 

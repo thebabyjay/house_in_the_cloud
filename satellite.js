@@ -55,11 +55,12 @@ socket.on('connect', function() {
 // })
 
 socket.on('change-leds', function(data) {
-    const { lights, rgb } = data;
+    changeLeds(data.rgb);
+    // const { lights, rgb } = data;
 
-    if (lights.includes(remoteId)) {
-        changeLeds(rgb);
-    }
+    // if (lights.includes(remoteId)) {
+    //     changeLeds(rgb);
+    // }
 })
 
 
