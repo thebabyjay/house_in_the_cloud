@@ -43,8 +43,99 @@ const db = {
             },
             groups: []
         },
+        {
+            id: 3,
+            name: `Jason's Room 4ft`,
+            active: false,
+            rgb: {
+                red: 0,
+                green: 0,
+                blue: 0,
+            },
+            groups: []
+        },
+        {
+            id: 4,
+            name: `Jason's Room 4ft`,
+            active: false,
+            rgb: {
+                red: 0,
+                green: 0,
+                blue: 0,
+            },
+            groups: []
+        },
+        {
+            id: 5,
+            name: `Jason's Room 4ft`,
+            active: false,
+            rgb: {
+                red: 0,
+                green: 0,
+                blue: 0,
+            },
+            groups: []
+        },
+        {
+            id: 6,
+            name: `Jason's Room 4ft`,
+            active: false,
+            rgb: {
+                red: 0,
+                green: 0,
+                blue: 0,
+            },
+            groups: []
+        },
     ],
-    scenes: [],
+    scenes: [
+        {
+            id: 1,
+            name: 'Bonne Nuit',
+            active: false,
+            lights: [
+                {
+                    id: 1,
+                    rgb: {
+                        red: 0,
+                        green: 2,
+                        blue: 4
+                    }
+                },
+                {
+                    id: 2,
+                    rgb: {
+                        red: 0,
+                        green: 2,
+                        blue: 4
+                    }
+                },
+            ]
+        },
+        {
+            id: 2,
+            name: 'Bon Matin',
+            active: false,
+            lights: [
+                {
+                    id: 1,
+                    rgb: {
+                        red: 180,
+                        green: 160,
+                        blue: 150
+                    }
+                },
+                {
+                    id: 2,
+                    rgb: {
+                        red: 180,
+                        green: 160,
+                        blue: 150
+                    }
+                },
+            ]
+        }
+    ],
 }
 
 const onboardLeds = {};
@@ -136,7 +227,9 @@ const updateLightStatus = data => {
     })
 
     // set the light to off or its previous value
-    sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb });
+    if (prod) {
+        sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb });
+    }
 }
 
 

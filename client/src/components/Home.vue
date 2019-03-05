@@ -1,12 +1,11 @@
 <template>
   <div class="wrapper">
     <h1>Your Lights</h1>
-    <div class="lights-container">
     <v-container>
-      <v-layout row wrap justify-start>
+      <v-layout row wrap>
         <light 
           v-for='light in lights' 
-          :key='light.id' 
+          :key='`light_${light.id}`' 
           :light='light' 
           :selectedArr='selectedLights' 
           :selected='selectedLights.includes(light.id)'
@@ -15,21 +14,19 @@
       </v-layout>
     </v-container>
       
-    </div>
-
     <v-container>
       <v-layout row justify-center align-center>
-        <v-flex xs10>
+        <v-flex xs12>
           <input type="range" min="0" max="255" v-model='redSliderValue' class="slider" id="redSlider">
         </v-flex>
       </v-layout>
       <v-layout row justify-center align-center>
-        <v-flex xs10>
+        <v-flex xs12>
           <input type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
         </v-flex>
       </v-layout>
       <v-layout row justify-center align-center>
-        <v-flex xs10>
+        <v-flex xs12>
           <input type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
         </v-flex>
       </v-layout>
@@ -37,30 +34,41 @@
     <!-- <hr> -->
 
     
-    <!-- <hr>
     <h1>Your Scenes</h1>
-    <div class="scenes-container">
-      
-    </div> -->
+    <v-container>
+      <v-layout row wrap justify-center>
+        <scene 
+          v-for='scene in scenes'
+          :key='`scene_${scene.id}`'
+          :scene='scene'
+          :selected='selectedScenes.includes(scene.id)'
+          :handleSceneClick='handleSceneClick'
+        />
+      </v-layout>
+    </v-container>
   </div>
 </template>
 
 <script>
 import io from 'socket.io-client';
 import Light from './Light';
+import Scene from './Scene';
 
 export default {
   name: 'Home',
   components: {
-    Light
+    Light,
+    Scene
   },
   data() {
+    const mainServerUrl = `${window.location.hostname}:3000`
     return {
-      socket: io('localhost:3000'),
+      socket: io(mainServerUrl),
       lights: [],
       scenes: [],
       groups: [],
       selectedLights: [],
+      selectedScenes: [],
 
       redSliderValue: 0,
       greenSliderValue: 0,
@@ -86,6 +94,7 @@ export default {
       const { lights, scenes } = data;
       this.lights = lights;
       this.scenes = scenes;
+      console.log(scenes)
     })
 
     // set a light button that could have been changed by another user
@@ -112,11 +121,6 @@ export default {
       })
     },
 
-    emitLightToggle: function(id) {
-
-    },
-
-
 
 
     // EVENT HANDLERS
@@ -129,6 +133,10 @@ export default {
       //   this.selectedLights = this.selectedLights.concat(id);
       // }
     },
+    
+    handleSceneClick: function(id) {
+
+    },
 
   }
 };
@@ -139,13 +147,6 @@ export default {
 .wrapper {
   padding-top: 50px;
   color: white;
-}
-
-.lights-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
 }
 
 .light-row {
