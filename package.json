@@ -25,5 +25,8 @@
     "socket.io-client": "^2.2.0",
     "vue-socket.io": "^3.0.5",
     "vuetify": "^1.5.5"
+  },
+  "devDependencies": {
+    "vue-cli-plugin-vuetify": "^0.4.6"
   }
 }

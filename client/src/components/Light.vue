@@ -1,8 +1,11 @@
 <template>
-    <v-flex xs6 sm4 md2>
+    <v-flex 
+    xs6
+    sm4
+    md2>
         <div 
         class="light-button flex-centered" 
-        :class='{ "light-button-selected": selected }'
+        :class="[selected ? 'light-active' : 'light-inactive']"
         @click='() => toggleLightClick(light.id)'
         >
             {{ light.name }}
@@ -41,8 +44,14 @@ export default {
     height: 125px;
     border-radius: 10px;
 }
-.light-button-selected {
-    border: 2px solid rgba(100,230,100, 0.7);
+
+.light-inactive {
+    border: 2px solid rgba(0,0,0, 0.7);
 }
+
+.light-active {
+    border: 2px solid rgba(100,230,100, 0.7);    
+}
+
 </style>
 

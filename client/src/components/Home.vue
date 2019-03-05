@@ -3,18 +3,17 @@
     <h1>Your Lights</h1>
     <div class="lights-container">
     <v-container>
-      <v-layout row wrap>
-
+      <v-layout row  wrap justify-start>
+        <light 
+          v-for='light in lights' 
+          :key='light.id' 
+          :light='light' 
+          :selectedArr='selectedLights' 
+          :selected='selectedLights.includes(light.id)'
+          :toggleLightClick='toggleLightClick'
+        />
       </v-layout>
     </v-container>
-      <light 
-        v-for='light in lights' 
-        :key='light.id' 
-        :light='light' 
-        :selectedArr='selectedLights' 
-        :selected='selectedLights.includes(light.id)'
-        :toggleLightClick='toggleLightClick'
-      />
       
     </div>
 
