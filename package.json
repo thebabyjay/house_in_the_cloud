@@ -1,25 +1,28 @@
 {
-  "name": "boo-led",
+  "name": "vue_boo_led",
   "version": "1.0.0",
-  "description": "My own version of Philips Hue lightstrips using NodeJS, socket.io, raspberry pis, and LED strips",
-  "main": "server.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npm run start:dev",
+    "prod": "npm run start:prod",
+    "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
+    "start:prod": "concurrently \"node server.js production\" \"npm run client\"",
+    "start:dev": "concurrently \"nodemon server.js\" \"npm run client\"",
+    "client": "cd client && npm run serve",
+    "install": "cd client && npm install",
+    "build": "cd client && npm run build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Jwb81/Boo-LED.git"
-  },
-  "author": "Jason Barnett",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Jwb81/Boo-LED/issues"
-  },
-  "homepage": "https://github.com/Jwb81/Boo-LED#readme",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
+    "concurrently": "^4.1.0",
+    "cors": "^2.8.5",
     "express": "^4.16.4",
-    "pigpio": "^1.2.1",
-    "socket.io": "^1.7.3",
-    "socket.io-client": "^2.2.0"
+    "socket.io": "^2.2.0",
+    "socket.io-client": "^2.2.0",
+    "vue-socket.io": "^3.0.5"
   }
 }
