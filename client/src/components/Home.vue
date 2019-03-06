@@ -137,7 +137,7 @@ export default {
     },
     
     handleSceneClick: function(id) {
-
+      this.socket.emit('run-scene', { id });
     },
 
   }

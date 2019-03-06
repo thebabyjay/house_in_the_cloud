@@ -143,7 +143,7 @@ const updateRemote = (data) => {
     if (!prod) { return }
 
     const { lights, rgb } = data;
-
+	
     if (lights.includes(1)) {
         changeOnboardLeds(rgb);
     }
@@ -200,6 +200,23 @@ const updateLightStatus = data => {
     }
 }
 
+const runScene = data => {
+	const { id } = data;
+	const scene = db.scenes.find(scene => scene.id === id);
+
+	const affectedLights = scene.lights;
+	affectedLights.forEach(l => {
+		if (l.id === 1) {
+			return changeOnboardLeds(l.rgb);
+		}
+
+		sockets[l.id] && sockets[l.id].emit('change-leds', {
+			rgb: l.rgb,
+			active: true
+		})
+	})
+}
+
 
 const turnOnboardLedsOff = () => {
     if (!prod) { return }
@@ -241,7 +258,9 @@ io.sockets.on('connection', (socket) => {
 
     socket.on('update', updateRemote);
 
-    socket.on('update-light-status', updateLightStatus)
+    socket.on('update-light-status', updateLightStatus);
+
+    socket.on('run-scene', runScene);
     
 
 
