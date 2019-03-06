@@ -3,6 +3,8 @@ const fs        = require('fs');
 const io        = require('socket.io')(http)
 const cors      = require('cors');
 
+cors();
+
 const prod = process.argv[2] === 'production';
 
 let Gpio;
@@ -26,7 +28,7 @@ const db = {
             name: `Jason's Room 16ft`,
             active: false,
             rgb: {
-                red: 0,
+                red: 100,
                 green: 0,
                 blue: 0,
             },
@@ -138,7 +140,7 @@ const db = {
     ],
 }
 
-const onboardLeds = {};
+let onboardLeds = {};
 if (prod) {
     onboardLeds = {
         red: new Gpio(17, { mode: Gpio.OUTPUT }),
@@ -185,7 +187,7 @@ const updateRemote = (data) => {
 
     const { lights, rgb } = data;
 
-    if (lights.includes(0)) {
+    if (lights.includes(1)) {
         changeOnboardLeds(rgb);
     }
 
@@ -193,20 +195,25 @@ const updateRemote = (data) => {
     const { red, green, blue } = rgb;
     db.lights = db.lights.map(l => {
         if (lights.includes(l.id)) {
-            l.red = red;
-            l.green = green;
-            l.blue = blue;
+            l.rgb.red = Number(red);
+            l.rgb.green = Number(green);
+            l.rgb.blue = Number(blue);
         }
         return l;
     });
 
+    // filter out 1 since that is the onboard LED
+    const affected = lights.filter(id => id !== 1);
+
     // send the value to all affected satellites
-    lights.forEach(id => {
-        const lightIdx = db.lights.find(l => l.id === id);
-        sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb });
-        // if (sockets[id]) {
-        //     sockets[id].emit('change-leds', { data })
-        // }
+    affected.forEach(id => {
+    	try {
+			const lightIdx = db.lights.findIndex(l => l.id === id);
+        	sockets[id] && sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb });
+    	}
+    	catch (e) {
+    		console.log(e)
+    	}
     })    
 }
 
@@ -226,8 +233,12 @@ const updateLightStatus = data => {
         active: db.lights[lightIdx].active
     })
 
-    // set the light to off or its previous value
-    if (prod) {
+    // set the light to off or its previous value (and take out ID 1 since that is the onboard strip)
+    if (id === 1) {
+    	return db.lights[lightIdx].active ? changeOnboardLeds(db.lights[lightIdx].rgb) : turnOnboardLedsOff();
+    } 
+
+    if (prod && sockets[id]) {
         sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb });
     }
 }
@@ -256,15 +267,11 @@ io.sockets.on('connection', (socket) => {
      */
     
     // inital hit after connection
-    socket.on('setId', data => {
+    socket.on('satellite-init', data => {
         const { id } = data;
         sockets[id] = socket;
     });
     
-    socket.on('satellite-init', data => {
-        console.log(data)
-    });
-
     
     
     
