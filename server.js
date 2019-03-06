@@ -45,50 +45,7 @@ const db = {
             },
             groups: []
         },
-        {
-            id: 3,
-            name: `Jason's Room 4ft`,
-            active: false,
-            rgb: {
-                red: 0,
-                green: 0,
-                blue: 0,
-            },
-            groups: []
-        },
-        {
-            id: 4,
-            name: `Jason's Room 4ft`,
-            active: false,
-            rgb: {
-                red: 0,
-                green: 0,
-                blue: 0,
-            },
-            groups: []
-        },
-        {
-            id: 5,
-            name: `Jason's Room 4ft`,
-            active: false,
-            rgb: {
-                red: 0,
-                green: 0,
-                blue: 0,
-            },
-            groups: []
-        },
-        {
-            id: 6,
-            name: `Jason's Room 4ft`,
-            active: false,
-            rgb: {
-                red: 0,
-                green: 0,
-                blue: 0,
-            },
-            groups: []
-        },
+        
     ],
     scenes: [
         {
@@ -209,7 +166,7 @@ const updateRemote = (data) => {
     affected.forEach(id => {
     	try {
 			const lightIdx = db.lights.findIndex(l => l.id === id);
-        	sockets[id] && sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb });
+        	sockets[id] && sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb, active: db.lights[lightIdx].active });
     	}
     	catch (e) {
     		console.log(e)
@@ -239,7 +196,7 @@ const updateLightStatus = data => {
     } 
 
     if (prod && sockets[id]) {
-        sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb });
+        sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb, active: db.lights[lightIdx].active });
     }
 }
 
