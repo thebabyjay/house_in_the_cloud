@@ -2,7 +2,7 @@
   <div class="wrapper">
     <h1>Your Lights</h1>
     <v-container>
-      <v-layout row wrap>
+      <v-layout row wrap justify-center>
         <light 
           v-for='light in lights' 
           :key='`light_${light.id}`' 
@@ -91,10 +91,12 @@ export default {
   mounted() {
     // re-instantiate the lights and scenes
     this.socket.on('browser-reset', data => {
+      // console.log(data)
       const { lights, scenes } = data;
       this.lights = lights;
       this.scenes = scenes;
-      console.log(scenes)
+      this.selectedLights = lights.filter(l => l.active).map(l => l.id);
+      // console.log(scenes)
     })
 
     // set a light button that could have been changed by another user
