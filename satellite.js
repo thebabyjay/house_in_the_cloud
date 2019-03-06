@@ -1,5 +1,6 @@
+// const socket = require('socket.io-client')('http://192.168.1.119:3000');
 const socket = require('socket.io-client')('http://192.168.1.119:3000');
-const remoteId = 1;
+const remoteId = 2;
 
 const Gpio = require('pigpio').Gpio, //include pigpio to interact with the GPIO
     ledRed = new Gpio(2, {
@@ -63,7 +64,7 @@ socket.on('change-leds', function(data) {
     // }
 })
 
-
+// socket.on('new-light-status', data => console.log(data))
 
 
 process.on('SIGINT', function () { //on ctrl+c
