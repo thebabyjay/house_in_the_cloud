@@ -19,13 +19,14 @@
 </template>
 
 <script>
+
 export default {
     name: 'Light',
     props: {
         light: Object,
         selected: Boolean,
         handleLightClick: Function
-    },
+    },   
 }
 </script>
 
@@ -51,6 +52,7 @@ export default {
     margin: 5px;
     border-radius: 10px;
     color: white;
+    position: relative;
 }
 .light-button:hover {
     background-color: rgba(100,100,200,0.4);

@@ -51,6 +51,7 @@ const db = {
         {
             id: 1,
             name: 'Bonne Nuit',
+            image: 'goodnight.jpg',
             active: false,
             lights: [
                 {
@@ -74,6 +75,7 @@ const db = {
         {
             id: 2,
             name: 'Bon Matin',
+            image: 'goodmorning.jpg',
             active: false,
             lights: [
                 {
