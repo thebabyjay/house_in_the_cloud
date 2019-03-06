@@ -37,10 +37,17 @@ ledBlue.digitalWrite(off); // Turn BLUE LED off
 /*
     FUNCTIONS   
 */
-const changeLeds = (rgb) => {
-    ledRed.pwmWrite(rgb.red);
-    ledGreen.pwmWrite(rgb.green);
-    ledBlue.pwmWrite(rgb.blue);
+const changeLeds = (rgb, active) => {
+    if (active) {
+        ledRed.pwmWrite(rgb.red);
+        ledGreen.pwmWrite(rgb.green);
+        ledBlue.pwmWrite(rgb.blue);
+        return;
+    }
+    ledRed.pwmWrite(0);
+    ledGreen.pwmWrite(0);
+    ledBlue.pwmWrite(0);    
+    
 }
 
 
@@ -56,7 +63,7 @@ socket.on('connect', function() {
 // })
 
 socket.on('change-leds', function(data) {
-    changeLeds(data.rgb);
+    changeLeds(data.rgb, data.active);
     // const { lights, rgb } = data;
 
     // if (lights.includes(remoteId)) {
