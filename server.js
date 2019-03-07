@@ -164,15 +164,18 @@ const updateRemote = (data) => {
     // filter out 1 since that is the onboard LED
     const affected = lights.filter(id => id !== 1);
 
+    lights.forEach(id => {
+        io.emit('update-light', {
+            id,
+            active: db.lights[lightIdx].active
+        })
+    })
+
     // send the value to all affected satellites
     affected.forEach(id => {
     	try {
 			const lightIdx = db.lights.findIndex(l => l.id === id);
             sockets[id] && sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb, active: db.lights[lightIdx].active });
-            io.emit('update-light', {
-                id,
-                active: db.lights[lightIdx].active
-            })
     	}
     	catch (e) {
     		console.log(e)

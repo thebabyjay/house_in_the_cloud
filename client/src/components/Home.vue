@@ -118,6 +118,7 @@ export default {
 
     // set a light button that could have been changed by another user
     this.socket.on('update-light', data => {
+      console.log(data)
       const { id, active } = data;
       const found = this.switchesToggledOn.find(val => val === id);
       if (found && !active) {
