@@ -7,8 +7,8 @@
             @click='() => handleLightClick(light.id)'
         >
             <span>{{ light.name }}</span>
-            <label v-if='showSwitch' class='switch'>
-                <input type="checkbox">
+            <label class='switch'>
+                <input type="checkbox" :checked='selected' @click='() => handleLightClick(light.id)'>
                 <span class="slider round"></span>
             </label>
         </div>
@@ -19,12 +19,11 @@
 <script>
 
 export default {
-    name: 'Light',
+    name: 'LightSwitch',
     props: {
         light: Object,
         selected: Boolean,
         handleLightClick: Function,
-        showSwitch: Boolean
     },   
 }
 </script>
@@ -47,7 +46,8 @@ export default {
     cursor: pointer;
     /* width: 150px; */
     flex: 1;
-    height: 75px;
+    /* height: 75px; */
+    padding: 10px;
     margin: 5px;
     border-radius: 10px;
     color: white;
@@ -61,10 +61,9 @@ export default {
     border: 2px solid rgba(0,0,0, 0.7);
 }
 
-.light-active {
+/* .light-active {
     border: 2px solid rgba(20,230,20, 0.7);    
-    /* background-color: rgba(0,250,0,0.2); */
-}
+} */
 
 .top-half,
 .bottom-half {
@@ -86,7 +85,7 @@ export default {
 .switch {
     position: relative;
     display: inline-block;
-    width: 60px;
+    width: 80px;
     height: 34px;
     margin-top: 10px;
 }
@@ -114,8 +113,8 @@ export default {
   left: 4px;
   bottom: 4px;
   background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: .3s;
+  transition: .3s;
 }
 input:checked + .slider {
   background-color: #2196F3;
@@ -125,9 +124,9 @@ input:focus + .slider {
   box-shadow: 0 0 1px #2196F3;
 }
 input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
+  -webkit-transform: translateX(46px);
+  -ms-transform: translateX(46px);
+  transform: translateX(46px);
 }
 
 .slider.round {

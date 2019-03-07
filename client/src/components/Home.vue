@@ -1,15 +1,29 @@
 <template>
   <div class="wrapper">
-    <h1>Your Lights</h1>
+    <h1>Switches</h1>
     <v-container>
       <v-layout row wrap justify-center>
-        <light 
+        <light-switch
           v-for='light in lights' 
-          :key='`light_${light.id}`' 
+          :key='`light_switch_${light.id}`' 
           :light='light' 
-          :selectedArr='selectedLights' 
+          :selected='switchesToggledOn.includes(light.id)'
+          :handleLightClick='handleLightSwitchClick'
+          :showSwitch='true'
+        />
+      </v-layout>
+    </v-container>
+
+
+    <h1 style='margin-top: 30px;'>Change the Colors!</h1>
+    <v-container>
+      <v-layout row wrap justify-center>
+        <light-color
+          v-for='light in lights' 
+          :key='`light_color_${light.id}`' 
+          :light='light' 
           :selected='selectedLights.includes(light.id)'
-          :handleLightClick='handleLightClick'
+          :handleLightClick='handleLightColorClick'
         />
       </v-layout>
     </v-container>
@@ -34,7 +48,7 @@
     <!-- <hr> -->
 
     
-    <h1>Your Scenes</h1>
+    <h1 style='margin-top: 30px;'>Scenes</h1>
     <v-container>
       <v-layout row wrap justify-center>
         <scene 
@@ -51,13 +65,15 @@
 
 <script>
 import io from 'socket.io-client';
-import Light from './Light';
+import LightSwitch from './LightSwitch';
+import LightColor from './LightColor';
 import Scene from './Scene';
 
 export default {
   name: 'Home',
   components: {
-    Light,
+    LightSwitch,
+    LightColor,
     Scene
   },
   data() {
@@ -67,6 +83,7 @@ export default {
       lights: [],
       scenes: [],
       groups: [],
+      switchesToggledOn: [],
       selectedLights: [],
       selectedScenes: [],
 
@@ -100,20 +117,26 @@ export default {
     })
 
     // set a light button that could have been changed by another user
-    this.socket.on('new-light-status', data => {
+    this.socket.on('update-light', data => {
       const { id, active } = data;
-      const found = this.selectedLights.find(val => val === id);
+      const found = this.switchesToggledOn.find(val => val === id);
       if (found && !active) {
-        this.selectedLights = this.selectedLights.filter(val => val !== id);
+        this.switchesToggledOn = this.switchesToggledOn.filter(val => val !== id);
       } else if (!found && active) {
-        this.selectedLights = this.selectedLights.concat(id);
+        this.switchesToggledOn = this.switchesToggledOn.concat(id);
       }
+      // const found = this.selectedLights.find(val => val === id);
+      // if (found && !active) {
+      //   this.selectedLights = this.selectedLights.filter(val => val !== id);
+      // } else if (!found && active) {
+      //   this.selectedLights = this.selectedLights.concat(id);
+      // }
     })
   },
 
   methods: {
     runLights: function() {
-      this.socket.emit('update', {
+      this.socket.emit('update-lights', {
         lights: this.selectedLights,
         rgb: {
           red: this.redSliderValue,
@@ -126,14 +149,20 @@ export default {
 
 
     // EVENT HANDLERS
-    handleLightClick: function(id) {
-      this.socket.emit('update-light-status', { id });
-      // const found = this.selectedLights.find(val => val === id);
-      // if (found !== undefined) {
-      //   this.selectedLights = this.selectedLights.filter(val => val !== id);
-      // } else {
-      //   this.selectedLights = this.selectedLights.concat(id);
-      // }
+    handleLightSwitchClick: function(id) {
+      this.socket.emit('toggle-light-switch', { id })
+    },
+    
+    handleLightColorClick: function(id) {
+      // this.socket.emit('update-light-color', { id });
+
+      // hold all lights being changed locally
+      const found = this.selectedLights.find(val => val === id);
+      if (found !== undefined) {
+        this.selectedLights = this.selectedLights.filter(val => val !== id);
+      } else {
+        this.selectedLights = this.selectedLights.concat(id);
+      }
     },
     
     handleSceneClick: function(id) {

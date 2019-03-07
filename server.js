@@ -187,7 +187,7 @@ const updateLightStatus = data => {
         db.lights[lightIdx].active = true;
     }
 
-    io.emit('new-light-status', {
+    io.emit('update-light', {
         id,
         active: db.lights[lightIdx].active
     })
@@ -258,9 +258,11 @@ io.sockets.on('connection', (socket) => {
     // send initial data
     socket.emit('browser-reset', { ...db })
 
-    socket.on('update', updateRemote);
+    socket.on('update-lights', updateRemote);
 
-    socket.on('update-light-status', updateLightStatus);
+    // socket.on('update-light-color', updateLightColor);
+
+    socket.on('toggle-light-switch', updateLightStatus);
 
     socket.on('run-scene', runScene);
     
