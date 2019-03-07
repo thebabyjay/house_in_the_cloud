@@ -166,6 +166,7 @@ const updateRemote = (data) => {
 
     lights.forEach(id => {
         const lightIdx = db.lights.findIndex(l => l.id === id);
+        db.lights[lightIdx].active = true;
         io.emit('update-light', {
             id,
             active: db.lights[lightIdx].active
