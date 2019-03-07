@@ -178,6 +178,11 @@ const updateRemote = (data) => {
     	try {
 			const lightIdx = db.lights.findIndex(l => l.id === id);
             sockets[id] && sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb, active: db.lights[lightIdx].active });
+            db.lights[lightIdx].active = true;
+            io.emit('update-light', {
+                id,
+                active: db.lights[lightIdx].active
+            })
     	}
     	catch (e) {
     		console.log(e)
@@ -217,7 +222,15 @@ const runScene = data => {
 
 	const affectedLights = scene.lights;
 	affectedLights.forEach(l => {
-		if (l.id === 1) {
+		const lightIdx = db.lights.findIndex(lit => lit.id === l.id);
+        db.lights[lightIdx].active = true;
+        db.lights[lightIdx].rgb = Object.assign({}, l.rgb);
+        io.emit('update-light', {
+            id: l.id,
+            active: db.lights[lightIdx].active
+        })
+
+        if (l.id === 1) {
 			return changeOnboardLeds(l.rgb);
 		}
 
