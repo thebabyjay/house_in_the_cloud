@@ -65,6 +65,9 @@ socket.on('connect', function() {
     });
 })
 
+socket.on('satellite-init', data => {
+    satelliteId = data.id;
+})
 // socket.on('info', function(data) {
 //     console.log(data)
 // })
