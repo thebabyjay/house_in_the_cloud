@@ -135,6 +135,11 @@ const readJson = (filename, cb) => {
 }
 
 readJson('db.json', data => {
+    data.lights = data.lights.map(l => {
+        l.connected = false;
+        return l;
+    })
+
     db = data;
 })
 
@@ -257,6 +262,9 @@ const changeOnboardLeds = (rgb) => {
 
 // listen for sockets
 io.sockets.on('connection', (socket) => {
+    let connectionType = 'browser';  // satellite or browser (change it if it is a satellite)
+    let mac;
+
     /**
      * SATELLITE CONNECTION SOCKETS
      */
@@ -266,12 +274,16 @@ io.sockets.on('connection', (socket) => {
         const { macAddr, remoteName } = data;
         console.log(macAddr)
 
+        connectionType = 'satellite';
+        mac = macAddr;
+
         // see if MAC address already exists
         const macIdx = db.lights.findIndex(l => l.id === macAddr)
         if (macIdx < 0) {
             const temp = Object.assign({}, remoteTemplate);
             temp.id = macAddr;
             temp.name = remoteName;
+            temp.connected = true;
             db.lights = db.lights.concat(temp);
         } else {
             db.lights[macIdx].connected = true;
@@ -280,9 +292,16 @@ io.sockets.on('connection', (socket) => {
         sockets[macAddr] = socket;
     });
 
-    socket.on('disconnect', data => {
-        console.log('disconnected')
-        console.log(data)
+    socket.on('disconnect', (data, idk) => {
+        if (connectionType === 'satellite') {
+            // remove socket
+            delete sockets[mac];
+            // sockets = sockets[mac] = null;
+
+            // set the `connected` flag to false
+            const macIdx = db.lights.findIndex(l => l.id === mac);
+            db.lights[macIdx].connected = false;
+        }
     })
     
     
@@ -322,5 +341,9 @@ http.listen(PORT, () => {
 // listen for ctrl + c
 process.on('SIGINT', function () {
     turnOnboardLedsOff();
-    process.exit();
+    writeJson('db.json', db);
+    setTimeout(() => {
+        process.exit();    
+    }, 250);
+    
 });
