@@ -1,7 +1,6 @@
-// const socket = require('socket.io-client')('http://192.168.1.119:3000');
-const socket    = require('socket.io-client')('http://192.168.1.119:3000');
 const os        = require('os');
 const config    = require('./config.js');
+const socket    = require('socket.io-client')(config.mainServerUrl);
 
 // use MAC address as ID for each satellite
 const macAddr = os.networkInterfaces().wlan0[0].mac;
