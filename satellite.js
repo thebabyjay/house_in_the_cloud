@@ -1,6 +1,9 @@
 // const socket = require('socket.io-client')('http://192.168.1.119:3000');
 const socket = require('socket.io-client')('http://192.168.1.119:3000');
-const remoteId = 2;
+const os = require('os');
+console.log(os)
+// get a new id when first connecting to the main server
+let satelliteId = null;
 
 const Gpio = require('pigpio').Gpio, //include pigpio to interact with the GPIO
     ledRed = new Gpio(2, {
@@ -55,9 +58,12 @@ const changeLeds = (rgb, active) => {
     WEB SOCKETS
 */
 socket.on('connect', function() {
-    socket.emit('satellite-init', { id: remoteId });
+    socket.emit('satellite-init');
 })
 
+socket.on('satellite-init', data => {
+    satelliteId = data.id;
+})
 // socket.on('info', function(data) {
 //     console.log(data)
 // })

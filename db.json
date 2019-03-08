@@ -1,0 +1,66 @@
+{
+    "lights": [
+        {
+            "id": 1,
+            "name": "Jason's Room 16ft",
+            "active": false,
+            "connected": false,
+            "rgb": {
+                "red": 100,
+                "green": 0,
+                "blue": 0
+            },
+            "groups": []
+        }
+    ],
+    "scenes": [
+        {
+            "id": 1,
+            "name": "Bonne Nuit",
+            "image": "goodnight.jpg",
+            "active": false,
+            "lights": [
+                {
+                    "id": 1,
+                    "rgb": {
+                        "red": 0,
+                        "green": 2,
+                        "blue": 4
+                    }
+                },
+                {
+                    "id": "b8:27:eb:99:c7:3b",
+                    "rgb": {
+                        "red": 0,
+                        "green": 2,
+                        "blue": 4
+                    }
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Bon Matin",
+            "image": "goodmorning.jpg",
+            "active": false,
+            "lights": [
+                {
+                    "id": 1,
+                    "rgb": {
+                        "red": 180,
+                        "green": 160,
+                        "blue": 150
+                    }
+                },
+                {
+                    "id": "b8:27:eb:99:c7:3b",
+                    "rgb": {
+                        "red": 180,
+                        "green": 160,
+                        "blue": 150
+                    }
+                }
+            ]
+        }
+    ]
+}
