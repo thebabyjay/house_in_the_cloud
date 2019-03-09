@@ -6,8 +6,8 @@
             "active": true,
             "connected": false,
             "rgb": {
-                "red": 72,
-                "green": 18,
+                "red": 49,
+                "green": 14,
                 "blue": 0
             },
             "groups": []
@@ -18,8 +18,8 @@
             "active": true,
             "connected": true,
             "rgb": {
-                "red": 72,
-                "green": 18,
+                "red": 49,
+                "green": 14,
                 "blue": 0
             },
             "groups": []
@@ -59,17 +59,41 @@
                 {
                     "id": 1,
                     "rgb": {
-                        "red": 180,
-                        "green": 160,
-                        "blue": 150
+                        "red": 223,
+                        "green": 185,
+                        "blue": 105
                     }
                 },
                 {
                     "id": "b8:27:eb:99:c7:3b",
                     "rgb": {
-                        "red": 180,
-                        "green": 160,
-                        "blue": 150
+                        "red": 223,
+                        "green": 185,
+                        "blue": 105
+                    }
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": "Relax",
+            "image": "relax.jpg",
+            "active": false,
+            "lights": [
+                {
+                    "id": 1,
+                    "rgb": {
+                        "red": 120,
+                        "green": 35,
+                        "blue": 0
+                    }
+                },
+                {
+                    "id": "b8:27:eb:99:c7:3b",
+                    "rgb": {
+                        "red": 120,
+                        "green": 35,
+                        "blue": 0
                     }
                 }
             ]

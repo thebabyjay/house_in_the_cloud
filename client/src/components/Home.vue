@@ -30,17 +30,26 @@
       
     <v-container>
       <v-layout row justify-center align-center>
-        <v-flex xs12>
+      	<v-flex xs1>
+      		{{ redSliderValue }}
+      	</v-flex>	
+        <v-flex xs11>
           <input type="range" min="0" max="255" v-model='redSliderValue' class="slider" id="redSlider">
         </v-flex>
       </v-layout>
       <v-layout row justify-center align-center>
-        <v-flex xs12>
+      	<v-flex xs1>
+      		{{ greenSliderValue }}
+      	</v-flex>	
+        <v-flex xs11>
           <input type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
         </v-flex>
       </v-layout>
       <v-layout row justify-center align-center>
-        <v-flex xs12>
+      	<v-flex xs1>
+      		{{ blueSliderValue }}
+      	</v-flex>	
+        <v-flex xs11>
           <input type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
         </v-flex>
       </v-layout>
