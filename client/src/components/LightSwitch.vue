@@ -7,10 +7,11 @@
             @click='() => handleLightClick(light.id)'
         >
             <span>{{ light.name }}</span>
-            <label class='switch'>
+            <label v-if='!disabled' class='switch'>
                 <input type="checkbox" :checked='selected' @click='() => handleLightClick(light.id)'>
                 <span class="slider round"></span>
             </label>
+            <div v-if='disabled' style='margin-top: 20px; color: rgba(255,100,100,0.8);'>Device not connected</div>
         </div>
     </v-flex>
     <!-- </div> -->
@@ -24,6 +25,7 @@ export default {
         light: Object,
         selected: Boolean,
         handleLightClick: Function,
+        disabled: Boolean
     },   
 }
 </script>
@@ -46,7 +48,8 @@ export default {
     cursor: pointer;
     /* width: 150px; */
     flex: 1;
-    /* height: 75px; */
+    /*height: 75px; */
+    min-height: 90px;
     padding: 10px;
     margin: 5px;
     border-radius: 10px;

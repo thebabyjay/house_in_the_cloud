@@ -4,11 +4,11 @@
             "id": 1,
             "name": "Jason's Room 16ft",
             "active": true,
-            "connected": false,
+            "connected": true,
             "rgb": {
-                "red": 49,
-                "green": 14,
-                "blue": 0
+                "red": 0,
+                "green": 57,
+                "blue": 73
             },
             "groups": []
         },
@@ -18,9 +18,9 @@
             "active": true,
             "connected": true,
             "rgb": {
-                "red": 49,
-                "green": 14,
-                "blue": 0
+                "red": 0,
+                "green": 57,
+                "blue": 73
             },
             "groups": []
         }

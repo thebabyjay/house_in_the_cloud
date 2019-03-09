@@ -5,11 +5,13 @@
       <v-layout row wrap justify-center>
         <light-switch
           v-for='light in lights' 
+          :class='{ "switch-disabled": !connectedLights.includes(light.id) }'
           :key='`light_switch_${light.id}`' 
           :light='light' 
           :selected='switchesToggledOn.includes(light.id)'
           :handleLightClick='handleLightSwitchClick'
           :showSwitch='true'
+          :disabled='!connectedLights.includes(light.id)'
         />
       </v-layout>
     </v-container>
@@ -20,6 +22,7 @@
       <v-layout row wrap justify-center>
         <light-color
           v-for='light in lights' 
+          v-if='connectedLights.includes(light.id)'
           :key='`light_color_${light.id}`' 
           :light='light' 
           :selected='selectedLights.includes(light.id)'
@@ -97,6 +100,7 @@ export default {
       lights: [],
       scenes: [],
       groups: [],
+      connectedLights: [],
       switchesToggledOn: [],
       selectedLights: [],
       selectedScenes: [],
@@ -130,12 +134,13 @@ export default {
   mounted() {
     // re-instantiate the lights and scenes
     this.socket.on('browser-reset', data => {
-      // console.log(data)
+    console.log(data)
       const { lights, scenes } = data;
       this.lights = lights;
       this.scenes = scenes;
       this.switchesToggledOn = lights.filter(l => l.active).map(l => l.id);
-      // console.log(scenes)
+      this.connectedLights = lights.filter(l => l.connected).map(l => l.id);
+      console.log(`connected: ${this.connectedLights}`);
     })
 
     // set a light button that could have been changed by another user
@@ -200,6 +205,11 @@ export default {
 .wrapper {
   padding-top: 50px;
   color: white;
+}
+
+.switch-disabled {
+	pointer-events: none;
+	opacity: 0.5;
 }
 
 .light-row {
