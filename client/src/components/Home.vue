@@ -125,7 +125,7 @@ export default {
       const { lights, scenes } = data;
       this.lights = lights;
       this.scenes = scenes;
-      this.selectedLights = lights.filter(l => l.active).map(l => l.id);
+      this.switchesToggledOn = lights.filter(l => l.active).map(l => l.id);
       // console.log(scenes)
     })
 
