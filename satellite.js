@@ -1,6 +1,9 @@
-// const socket = require('socket.io-client')('http://192.168.1.119:3000');
-const socket = require('socket.io-client')('http://192.168.1.119:3000');
-const remoteId = 2;
+const os        = require('os');
+const config    = require('./config.js');
+const socket    = require('socket.io-client')(config.mainServerUrl);
+
+// use MAC address as ID for each satellite
+const macAddr = os.networkInterfaces().wlan0[0].mac;
 
 const Gpio = require('pigpio').Gpio, //include pigpio to interact with the GPIO
     ledRed = new Gpio(2, {
@@ -55,9 +58,15 @@ const changeLeds = (rgb, active) => {
     WEB SOCKETS
 */
 socket.on('connect', function() {
-    socket.emit('satellite-init', { id: remoteId });
+    socket.emit('satellite-init', { 
+        macAddr,
+        remoteName: config.remoteName
+    });
 })
 
+socket.on('satellite-init', data => {
+    satelliteId = data.id;
+})
 // socket.on('info', function(data) {
 //     console.log(data)
 // })

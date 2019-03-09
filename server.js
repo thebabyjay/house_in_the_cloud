@@ -20,84 +20,76 @@ const digitalOn = 1;
 const digitalOff = 0;
 
 const sockets = {};
-const db = {
-    lights: [
-        // id 1 is the onboard LEDS
-        {
-            id: 1,
-            name: `Jason's Room 16ft`,
-            active: false,
-            rgb: {
-                red: 100,
-                green: 0,
-                blue: 0,
-            },
-            groups: []
-        },
-        {
-            id: 2,
-            name: `Jason's Room 4ft`,
-            active: false,
-            rgb: {
-                red: 0,
-                green: 0,
-                blue: 0,
-            },
-            groups: []
-        },
-        
-    ],
-    scenes: [
-        {
-            id: 1,
-            name: 'Bonne Nuit',
-            image: 'goodnight.jpg',
-            active: false,
-            lights: [
-                {
-                    id: 1,
-                    rgb: {
-                        red: 0,
-                        green: 2,
-                        blue: 4
-                    }
-                },
-                {
-                    id: 2,
-                    rgb: {
-                        red: 0,
-                        green: 2,
-                        blue: 4
-                    }
-                },
-            ]
-        },
-        {
-            id: 2,
-            name: 'Bon Matin',
-            image: 'goodmorning.jpg',
-            active: false,
-            lights: [
-                {
-                    id: 1,
-                    rgb: {
-                        red: 180,
-                        green: 160,
-                        blue: 150
-                    }
-                },
-                {
-                    id: 2,
-                    rgb: {
-                        red: 180,
-                        green: 160,
-                        blue: 150
-                    }
-                },
-            ]
-        }
-    ],
-}
+
+let db = {};
+
+// const db = {
+//     lights: [
+//         // id 1 is the onboard LEDS
+//         {
+//             id: 1,
+//             name: `Jason's Room 16ft`,
+//             active: false,
+//             connected: false,
+//             rgb: {
+//                 red: 100,
+//                 green: 0,
+//                 blue: 0,
+//             },
+//             groups: []
+//         }
+//     ],
+//     scenes: [
+//         {
+//             id: 1,
+//             name: 'Bonne Nuit',
+//             image: 'goodnight.jpg',
+//             active: false,
+//             lights: [
+//                 {
+//                     id: 1,
+//                     rgb: {
+//                         red: 0,
+//                         green: 2,
+//                         blue: 4
+//                     }
+//                 },
+//                 {
+//                     id: 'b8:27:eb:99:c7:3b',
+//                     rgb: {
+//                         red: 0,
+//                         green: 2,
+//                         blue: 4
+//                     }
+//                 },
+//             ]
+//         },
+//         {
+//             id: 2,
+//             name: 'Bon Matin',
+//             image: 'goodmorning.jpg',
+//             active: false,
+//             lights: [
+//                 {
+//                     id: 1,
+//                     rgb: {
+//                         red: 180,
+//                         green: 160,
+//                         blue: 150
+//                     }
+//                 },
+//                 {
+//                     id: 'b8:27:eb:99:c7:3b',
+//                     rgb: {
+//                         red: 180,
+//                         green: 160,
+//                         blue: 150
+//                     }
+//                 },
+//             ]
+//         }
+//     ],
+// }
 
 let onboardLeds = {};
 if (prod) {
@@ -113,6 +105,7 @@ const remoteTemplate = {
     id: null,
     name: ``,
     active: false,
+    connected: false,
     rgb: {
         red: 0,
         green: 0,
@@ -122,24 +115,33 @@ const remoteTemplate = {
 }
 
 
-// app.use(express.static(__dirname));
-
-
 // read and write pi and RGB values locally instead of using a database for now
-const writeJson = async (filename, data) => {
-    await fs.writeFile(filename, JSON.stringify(data, null, 4), err => {
-        console.log(err);
+const writeJson = (filename, data, cb) => {
+    fs.writeFile(filename, JSON.stringify(data, null, 4), err => {
+        if (err) {
+            console.log(err);
+        }
     })
 }
 
-const readJson = async (filename) => {
-    await fs.readFile(filename, 'utf8', (err, data) => {
+const readJson = (filename, cb) => {
+    fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
             return console.log(err)
         }
-        return JSON.parse(data);
+        cb(JSON.parse(data));
+        // return JSON.parse(data);
     })
 }
+
+readJson('db.json', data => {
+    data.lights = data.lights.map(l => {
+        l.connected = false;
+        return l;
+    })
+
+    db = data;
+})
 
 const updateRemote = (data) => {
     if (!prod) { return }
@@ -178,6 +180,11 @@ const updateRemote = (data) => {
     	try {
 			const lightIdx = db.lights.findIndex(l => l.id === id);
             sockets[id] && sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb, active: db.lights[lightIdx].active });
+            db.lights[lightIdx].active = true;
+            io.emit('update-light', {
+                id,
+                active: db.lights[lightIdx].active
+            })
     	}
     	catch (e) {
     		console.log(e)
@@ -217,7 +224,15 @@ const runScene = data => {
 
 	const affectedLights = scene.lights;
 	affectedLights.forEach(l => {
-		if (l.id === 1) {
+		const lightIdx = db.lights.findIndex(lit => lit.id === l.id);
+        db.lights[lightIdx].active = true;
+        db.lights[lightIdx].rgb = Object.assign({}, l.rgb);
+        io.emit('update-light', {
+            id: l.id,
+            active: db.lights[lightIdx].active
+        })
+
+        if (l.id === 1) {
 			return changeOnboardLeds(l.rgb);
 		}
 
@@ -247,15 +262,47 @@ const changeOnboardLeds = (rgb) => {
 
 // listen for sockets
 io.sockets.on('connection', (socket) => {
+    let connectionType = 'browser';  // satellite or browser (change it if it is a satellite)
+    let mac;
+
     /**
      * SATELLITE CONNECTION SOCKETS
      */
     
     // inital hit after connection
     socket.on('satellite-init', data => {
-        const { id } = data;
-        sockets[id] = socket;
+        const { macAddr, remoteName } = data;
+        console.log(macAddr)
+
+        connectionType = 'satellite';
+        mac = macAddr;
+
+        // see if MAC address already exists
+        const macIdx = db.lights.findIndex(l => l.id === macAddr)
+        if (macIdx < 0) {
+            const temp = Object.assign({}, remoteTemplate);
+            temp.id = macAddr;
+            temp.name = remoteName;
+            temp.connected = true;
+            db.lights = db.lights.concat(temp);
+        } else {
+            db.lights[macIdx].connected = true;
+        }
+
+        sockets[macAddr] = socket;
     });
+
+    socket.on('disconnect', (data, idk) => {
+        if (connectionType === 'satellite') {
+            // remove socket
+            delete sockets[mac];
+            // sockets = sockets[mac] = null;
+
+            // set the `connected` flag to false
+            const macIdx = db.lights.findIndex(l => l.id === mac);
+            db.lights[macIdx].connected = false;
+        }
+    })
     
     
     
@@ -294,5 +341,9 @@ http.listen(PORT, () => {
 // listen for ctrl + c
 process.on('SIGINT', function () {
     turnOnboardLedsOff();
-    process.exit();
+    writeJson('db.json', db);
+    setTimeout(() => {
+        process.exit();    
+    }, 250);
+    
 });
