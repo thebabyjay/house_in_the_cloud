@@ -145,6 +145,14 @@ readJson('db.json', data => {
     })
 
     db = data;
+
+    const connected = db.lights.filter(l => l.connected);
+    connected.map(l => {
+        updateRemote({
+            lights: [l.id],
+            rgb: l.rgb
+        })
+    })
 })
 
 const updateRemote = (data) => {
