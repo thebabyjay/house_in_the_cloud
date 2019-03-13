@@ -134,26 +134,6 @@ const readJson = (filename, cb) => {
     })
 }
 
-readJson('db.json', data => {
-    data.lights = data.lights.map(l => {
-        if (l.id === 1) {
-            return l;
-        }
-        
-        l.connected = false;
-        return l;
-    })
-
-    db = data;
-
-    const connected = db.lights.filter(l => l.connected);
-    connected.map(l => {
-        updateRemote({
-            lights: [l.id],
-            rgb: l.rgb
-        })
-    })
-})
 
 const updateRemote = (data) => {
     if (!prod) { return }
@@ -333,8 +313,6 @@ io.sockets.on('connection', (socket) => {
     socket.on('toggle-light-switch', updateLightStatus);
 
     socket.on('run-scene', runScene);
-    
-
 
 })
 
@@ -344,6 +322,28 @@ io.sockets.on('connection', (socket) => {
  * STARTUP FUNCTIONS
  */
 turnOnboardLedsOff();
+
+
+readJson('db.json', data => {
+    data.lights = data.lights.map(l => {
+        if (l.id === 1) {
+            return l;
+        }
+        
+        l.connected = false;
+        return l;
+    })
+
+    db = data;
+
+    const connected = db.lights.filter(l => l.connected);
+    connected.map(l => {
+        updateRemote({
+            lights: [l.id],
+            rgb: l.rgb
+        })
+    })
+})
 
 // start the main server 
 http.listen(PORT, () => {
