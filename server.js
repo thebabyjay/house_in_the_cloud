@@ -23,74 +23,6 @@ const sockets = {};
 
 let db = {};
 
-// const db = {
-//     lights: [
-//         // id 1 is the onboard LEDS
-//         {
-//             id: 1,
-//             name: `Jason's Room 16ft`,
-//             active: false,
-//             connected: false,
-//             rgb: {
-//                 red: 100,
-//                 green: 0,
-//                 blue: 0,
-//             },
-//             groups: []
-//         }
-//     ],
-//     scenes: [
-//         {
-//             id: 1,
-//             name: 'Bonne Nuit',
-//             image: 'goodnight.jpg',
-//             active: false,
-//             lights: [
-//                 {
-//                     id: 1,
-//                     rgb: {
-//                         red: 0,
-//                         green: 2,
-//                         blue: 4
-//                     }
-//                 },
-//                 {
-//                     id: 'b8:27:eb:99:c7:3b',
-//                     rgb: {
-//                         red: 0,
-//                         green: 2,
-//                         blue: 4
-//                     }
-//                 },
-//             ]
-//         },
-//         {
-//             id: 2,
-//             name: 'Bon Matin',
-//             image: 'goodmorning.jpg',
-//             active: false,
-//             lights: [
-//                 {
-//                     id: 1,
-//                     rgb: {
-//                         red: 180,
-//                         green: 160,
-//                         blue: 150
-//                     }
-//                 },
-//                 {
-//                     id: 'b8:27:eb:99:c7:3b',
-//                     rgb: {
-//                         red: 180,
-//                         green: 160,
-//                         blue: 150
-//                     }
-//                 },
-//             ]
-//         }
-//     ],
-// }
-
 let onboardLeds = {};
 if (prod) {
     onboardLeds = {
@@ -188,7 +120,7 @@ const updateRemote = (data) => {
 const updateLightStatus = data => {
     const { id } = data;
     const lightIdx = db.lights.findIndex(l => l.id === id);
-
+ 
     if (db.lights[lightIdx].active) {
         db.lights[lightIdx].active = false;
     } else {
@@ -212,7 +144,7 @@ const updateLightStatus = data => {
 
 const runScene = data => {
 	const { id } = data;
-	const scene = db.scenes.find(scene => scene.id === id);
+    const scene = db.scenes.find(scene => scene.id === id);
 
 	const affectedLights = scene.lights;
 	affectedLights.forEach(l => {
@@ -235,12 +167,21 @@ const runScene = data => {
 	})
 }
 
+const filterLightFromScene = id => {
+    db.scenes = db.scenes.map(scene => {
+        // filter out the light from the associated lights
+        scene.lights = scene.lights.filter(l => l.id !== id);
+        return scene;
+    })
+}
+
 const deleteLight = (data, socket) => {
     const { id } = data;
     db.lights = db.lights.filter(l => l.id !== id);
     io.sockets.emit('light-deleted', {
         id
     })
+    filterLightFromScene(id);
 }
 
 const updateLight = (data, socket) => {
@@ -267,6 +208,24 @@ const updateScene = data => {
     io.sockets.emit('scene-updated', {
         scene
     })
+}
+
+const addScene = data => {
+    const { scene } = data;
+
+    // find the max id and add one for this scene
+    const max = db.scenes.reduce((prev, cur) => {
+        const { id } = cur;
+        if (id > prev) {
+            return id;
+        }
+        return prev;
+    }, 0);
+    const newId = max + 1;
+    scene.id = newId;
+    
+    db.scenes = db.scenes.concat(scene);
+    console.log(db.scenes)
 }
 
 
@@ -354,7 +313,9 @@ io.sockets.on('connection', (socket) => {
 
     socket.on('delete-scene', data => deleteScene(data, socket));
 
-    socket.on('update-scene', updateScene)
+    socket.on('update-scene', updateScene);
+
+    socket.on('add-scene', addScene);
     
 
 })
