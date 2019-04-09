@@ -5,8 +5,8 @@
         <h1>Boo_LED</h1>
       </div>
       <div>
-        <button class='header-action-btn' @click='() => showCreatePanel = !showCreatePanel'>Create</button>
-        <button class='header-action-btn' @click='() => showEditPanel = !showEditPanel'>Edit</button>
+        <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button>
+        <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button>
       </div>
     </div>
 
@@ -493,6 +493,9 @@ export default {
   background-color: rgba(255,255,255,0.2);
 }
 
+.header-action-btn-active {
+  background-color: rgba(41, 111, 250, 0.8);
+}
 
 
 
