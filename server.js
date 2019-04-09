@@ -148,7 +148,12 @@ const runScene = data => {
 
 	const affectedLights = scene.lights;
 	affectedLights.forEach(l => {
-		const lightIdx = db.lights.findIndex(lit => lit.id === l.id);
+        const lightIdx = db.lights.findIndex(lit => lit.id === l.id);
+        
+        if (lightIdx === -1) {
+            return
+        }
+        
         db.lights[lightIdx].active = true;
         db.lights[lightIdx].rgb = Object.assign({}, l.rgb);
         io.emit('update-light', {
