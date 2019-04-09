@@ -134,18 +134,6 @@ const readJson = (filename, cb) => {
     })
 }
 
-readJson('db.json', data => {
-    data.lights = data.lights.map(l => {
-        if (l.id === 1) {
-            return l;
-        }
-        
-        l.connected = false;
-        return l;
-    })
-
-    db = data;
-})
 
 const updateRemote = (data) => {
     if (!prod) { return }
@@ -257,11 +245,27 @@ const deleteLight = (data, socket) => {
 
 const updateLight = (data, socket) => {
     const { light } = data;
-    console.log(light)
     const idx = db.lights.findIndex(l => l.id === light.id);
     db.lights[idx] = light;
     io.sockets.emit('update-light-info', {
         light
+    })
+}
+
+const deleteScene = (data, socket) => {
+    const { id } = data;
+    db.scenes = db.scenes.filter(s => s.id !== id);
+    io.sockets.emit('scene-deleted', {
+        id
+    })
+}
+
+const updateScene = data => {
+    const { scene } = data;
+    const idx = db.scenes.findIndex(s => s.id === scene.id);
+    db.scenes[idx] = scene;
+    io.sockets.emit('scene-updated', {
+        scene
     })
 }
 
@@ -347,8 +351,11 @@ io.sockets.on('connection', (socket) => {
     socket.on('delete-light', data => deleteLight(data, socket));
 
     socket.on('update-light', data => updateLight(data, socket));
-    
 
+    socket.on('delete-scene', data => deleteScene(data, socket));
+
+    socket.on('update-scene', updateScene)
+    
 
 })
 
@@ -358,6 +365,28 @@ io.sockets.on('connection', (socket) => {
  * STARTUP FUNCTIONS
  */
 turnOnboardLedsOff();
+
+
+readJson('db.json', data => {
+    data.lights = data.lights.map(l => {
+        if (l.id === 1) {
+            return l;
+        }
+        
+        l.connected = false;
+        return l;
+    })
+
+    db = data;
+
+    const connected = db.lights.filter(l => l.connected);
+    connected.map(l => {
+        updateRemote({
+            lights: [l.id],
+            rgb: l.rgb
+        })
+    })
+})
 
 // start the main server 
 http.listen(PORT, () => {

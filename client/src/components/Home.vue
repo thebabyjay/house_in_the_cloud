@@ -11,13 +11,21 @@
     </div>
 
     <div v-if='showEditPanel' style='border-bottom: 1px solid white; margin-bottom: 25px;padding-bottom: 25px;'>
+      <h3>Mode:Edit</h3>
       <section>
-        <h3>Mode:Edit</h3>
         <h5>Lights</h5>
         <div v-for='light in lights' :key='"edit-light-" + light.id' class='acc-edit-row'>
           <button @click='() => deleteLight(light.id)'><i class="material-icons remove-icon">remove_circle_outline</i></button>
           <input type='text' class='edit-accessory-input' v-model='light.name' />
           <button @click='() => updateLight(light)'><i class="material-icons save-icon">check_circle_outline</i></button>
+        </div>
+      </section>
+      <section style='margin-top: 30px;'>
+        <h5>Scenes</h5>
+        <div v-for='scene in scenes' :key='"edit-scene-" + scene.id' class='acc-edit-row'>
+          <button @click='() => deleteScene(scene.id)'><i class="material-icons remove-icon">remove_circle_outline</i></button>
+          <input type='text' class='edit-accessory-input' v-model='scene.name' />
+          <button @click='() => updateScene(scene)'><i class="material-icons save-icon">check_circle_outline</i></button>
         </div>
       </section>
     </div>
@@ -142,9 +150,7 @@ export default {
 
   computed: {
     connectedLights: function() {
-      const temp = this.lights.filter(l => l.connected);
-      console.log(temp)
-      return temp
+      return this.lights.filter(l => l.connected);
     }
   },
 
@@ -174,8 +180,6 @@ export default {
       this.lights = lights;
       this.scenes = scenes;
       this.switchesToggledOn = lights.filter(l => l.active).map(l => l.id);
-      // this.allLights = lights.filter(l => l.connected).map(l => l.id);
-      console.log(`connected: ${this.connectedLights}`);
     })
 
     // set a light button that could have been changed by another user
@@ -196,7 +200,8 @@ export default {
     })
 
     this.socket.on('light-deleted', data => {
-      this.lights = this.lights.filter(l => l.id !== data.id);
+      const { id } = data;
+      this.lights = this.lights.filter(l => l.id !== id);
     })
 
     this.socket.on('update-light-info', data => {
@@ -208,6 +213,24 @@ export default {
         return l;
       })
     })
+
+    this.socket.on('scene-deleted', data => {
+      console.log(id)
+      const { id } = data;
+      this.scenes = this.scenes.filter(s => s.id !== id);
+    })
+
+    this.socket.on('scene-updated', data => {
+      console.log('modified')
+      const { scene } = data;
+      this.scenes = this.scenes.map(s => {
+        if (s.id === scene.id) {
+          return scene;
+        }
+        return s;
+      })
+    })
+
   },
 
   methods: {
@@ -231,6 +254,18 @@ export default {
     updateLight: function(light) {
       this.socket.emit('update-light', {
         light
+      })
+    },
+
+    deleteScene: function(id) {
+      this.socket.emit('delete-scene', {
+        id
+      })
+    },
+
+    updateScene: function(scene) {
+      this.socket.emit('update-scene', {
+        scene
       })
     },
 
