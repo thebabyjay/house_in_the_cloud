@@ -247,6 +247,24 @@ const runScene = data => {
 	})
 }
 
+const deleteLight = (data, socket) => {
+    const { id } = data;
+    db.lights = db.lights.filter(l => l.id !== id);
+    io.sockets.emit('light-deleted', {
+        id
+    })
+}
+
+const updateLight = (data, socket) => {
+    const { light } = data;
+    console.log(light)
+    const idx = db.lights.findIndex(l => l.id === light.id);
+    db.lights[idx] = light;
+    io.sockets.emit('update-light-info', {
+        light
+    })
+}
+
 
 const turnOnboardLedsOff = () => {
     if (!prod) { return }
@@ -296,7 +314,7 @@ io.sockets.on('connection', (socket) => {
         sockets[macAddr] = socket;
     });
 
-    socket.on('disconnect', (data, idk) => {
+    socket.on('disconnect', (data) => {
         if (connectionType === 'satellite') {
             // remove socket
             delete sockets[mac];
@@ -325,6 +343,10 @@ io.sockets.on('connection', (socket) => {
     socket.on('toggle-light-switch', updateLightStatus);
 
     socket.on('run-scene', runScene);
+
+    socket.on('delete-light', data => deleteLight(data, socket));
+
+    socket.on('update-light', data => updateLight(data, socket));
     
 
 

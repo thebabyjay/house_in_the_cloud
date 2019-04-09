@@ -16,7 +16,7 @@
             "id": "b8:27:eb:99:c7:3b",
             "name": "Jason's Room 4ft",
             "active": true,
-            "connected": true,
+            "connected": false,
             "rgb": {
                 "red": 0,
                 "green": 57,

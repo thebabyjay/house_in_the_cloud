@@ -1,17 +1,41 @@
 <template>
   <div class="wrapper">
+    <div class="header">
+      <div>
+        <h1>Boo_LED</h1>
+      </div>
+      <div>
+        <button class='header-action-btn' @click='() => showCreatePanel = !showCreatePanel'>Create</button>
+        <button class='header-action-btn' @click='() => showEditPanel = !showEditPanel'>Edit</button>
+      </div>
+    </div>
+
+    <div v-if='showEditPanel' style='border-bottom: 1px solid white; margin-bottom: 25px;padding-bottom: 25px;'>
+      <section>
+        <h3>Mode:Edit</h3>
+        <h5>Lights</h5>
+        <div v-for='light in lights' :key='"edit-light-" + light.id' class='acc-edit-row'>
+          <button @click='() => deleteLight(light.id)'><i class="material-icons remove-icon">remove_circle_outline</i></button>
+          <input type='text' class='edit-accessory-input' v-model='light.name' />
+          <button @click='() => updateLight(light)'><i class="material-icons save-icon">check_circle_outline</i></button>
+        </div>
+      </section>
+    </div>
+
+
+    
     <h1>Switches</h1>
     <v-container>
       <v-layout row wrap justify-center>
         <light-switch
           v-for='light in lights' 
-          :class='{ "switch-disabled": !connectedLights.includes(light.id) }'
+          :class='{ "switch-disabled": !connectedLights.find(l => l.id === light.id) }'
           :key='`light_switch_${light.id}`' 
           :light='light' 
           :selected='switchesToggledOn.includes(light.id)'
           :handleLightClick='handleLightSwitchClick'
           :showSwitch='true'
-          :disabled='!connectedLights.includes(light.id)'
+          :disabled='!connectedLights.find(l => l.id === light.id)'
         />
       </v-layout>
     </v-container>
@@ -21,8 +45,8 @@
     <v-container>
       <v-layout row wrap justify-center>
         <light-color
-          v-for='light in lights' 
-          v-if='connectedLights.includes(light.id)'
+          v-for='light in connectedLights' 
+          
           :key='`light_color_${light.id}`' 
           :light='light' 
           :selected='selectedLights.includes(light.id)'
@@ -100,7 +124,8 @@ export default {
       lights: [],
       scenes: [],
       groups: [],
-      connectedLights: [],
+      // allLights: [],
+      // connectedLights: [],
       switchesToggledOn: [],
       selectedLights: [],
       selectedScenes: [],
@@ -109,6 +134,17 @@ export default {
       greenSliderValue: 0,
       blueSliderValue: 0,
       brightnessSliderValue: 0,
+
+      showEditPanel: false,
+      showCreatePanel: false,
+    }
+  },
+
+  computed: {
+    connectedLights: function() {
+      const temp = this.lights.filter(l => l.connected);
+      console.log(temp)
+      return temp
     }
   },
 
@@ -134,12 +170,11 @@ export default {
   mounted() {
     // re-instantiate the lights and scenes
     this.socket.on('browser-reset', data => {
-    console.log(data)
       const { lights, scenes } = data;
       this.lights = lights;
       this.scenes = scenes;
       this.switchesToggledOn = lights.filter(l => l.active).map(l => l.id);
-      this.connectedLights = lights.filter(l => l.connected).map(l => l.id);
+      // this.allLights = lights.filter(l => l.connected).map(l => l.id);
       console.log(`connected: ${this.connectedLights}`);
     })
 
@@ -159,6 +194,20 @@ export default {
       //   this.selectedLights = this.selectedLights.concat(id);
       // }
     })
+
+    this.socket.on('light-deleted', data => {
+      this.lights = this.lights.filter(l => l.id !== data.id);
+    })
+
+    this.socket.on('update-light-info', data => {
+      const { light } = data;
+      this.lights = this.lights.map(l => {
+        if (l.id === light.id) {
+          return light;
+        }
+        return l;
+      })
+    })
   },
 
   methods: {
@@ -170,6 +219,18 @@ export default {
           green: this.greenSliderValue,
           blue: this.blueSliderValue,
         }
+      })
+    },
+
+    deleteLight: function(id) {
+      this.socket.emit('delete-light', {
+        id
+      })
+    },
+
+    updateLight: function(light) {
+      this.socket.emit('update-light', {
+        light
       })
     },
 
@@ -203,8 +264,86 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .wrapper {
-  padding-top: 50px;
+  /* padding-top: 50px; */
   color: white;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid white;
+  padding: 10px;
+  margin-bottom: 50px;
+}
+
+.header-action-btn{
+  margin: 5px;
+  border: 1px solid #fafafa;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.header-action-btn:hover {
+  background-color: rgba(255,255,255,0.2);
+}
+
+.acc-edit-row{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.panel-action-btn {
+  margin: 5px;
+  border: 1px solid #fafafa;
+  padding: 10px;
+  border-radius: 5px;
+}
+.panel-action-btn:hover {
+  background-color: rgba(255,255,255,0.2);
+}
+
+.remove-icon,
+.save-icon {
+  font-size: 30px;
+}
+
+.remove-icon:hover {
+  color: rgba(255,100,100,0.8);
+}
+.save-icon:hover {
+  color: rgba(100,225,100,0.8);
+}
+
+.panel-delete-btn {
+  border: 1px solid red;
+  border-radius: 50%;
+  padding: 15px;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.panel-delete-btn:hover {
+  background-color: rgba(255,100,100, 0.8);
+  color: black;
+}
+.panel-delete-btn-text {
+  position: absolute;
+  font-family: serif;
+  font-size: 20px;
+}
+
+.edit-accessory-input {
+  padding: 5px;
+  border: 1px solid #fafafa;
+  border-radius: 5px;
+  margin: 0 10px;
 }
 
 .switch-disabled {
