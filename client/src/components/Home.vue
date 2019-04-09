@@ -336,7 +336,6 @@ export default {
     })
 
     this.socket.on('scene-deleted', data => {
-      console.log(id)
       const { id } = data;
       this.scenes = this.scenes.filter(s => s.id !== id);
     })
