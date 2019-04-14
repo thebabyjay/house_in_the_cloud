@@ -268,7 +268,7 @@ const changeOnboardLeds = (rgb) => {
 io.sockets.on('connection', (socket) => {
     let connectionType = 'browser';  // satellite or browser (change it if it is a satellite)
     let mac;
-
+    console.log('new socket connected');
     /**
      * SATELLITE CONNECTION SOCKETS
      */
