@@ -31,7 +31,13 @@ export default {
 
     methods: {
         getImage: function(name) {
-            return require('../assets/' + name);
+            let img;
+            try {
+                img = require('../assets/' + name)
+            } catch (error) {
+                img = "https://placehold.it/200x100"
+            }
+            return img;
         }
     }
 }
@@ -89,6 +95,7 @@ export default {
     height: 100%;
     opacity: 0.3;
     z-index: 1;
+    border-radius: 5px;
 }
 
 

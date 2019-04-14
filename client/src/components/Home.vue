@@ -1,82 +1,194 @@
 <template>
   <div class="wrapper">
-    <h1>Switches</h1>
-    <v-container>
-      <v-layout row wrap justify-center>
-        <light-switch
-          v-for='light in lights' 
-          :class='{ "switch-disabled": !connectedLights.includes(light.id) }'
-          :key='`light_switch_${light.id}`' 
-          :light='light' 
-          :selected='switchesToggledOn.includes(light.id)'
-          :handleLightClick='handleLightSwitchClick'
-          :showSwitch='true'
-          :disabled='!connectedLights.includes(light.id)'
-        />
-      </v-layout>
-    </v-container>
+    <div class="header">
+      <div>
+        <h1>Boo_LED</h1>
+      </div>
+      <div>
+        <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button>
+        <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button>
+      </div>
+    </div>
+
+    <div v-if='showEditPanel' style='border-bottom: 1px solid white; margin-bottom: 25px;padding-bottom: 25px;'>
+      <h3 style='margin-bottom: 15px;'>Mode:Edit</h3>
+      <section>
+        <h5>Lights</h5>
+        <div v-for='light in lights' :key='"edit-light-" + light.id' class='acc-edit-row'>
+          <button @click='() => deleteLight(light.id)'><i class="material-icons remove-icon">remove_circle_outline</i></button>
+          <input type='text' class='edit-accessory-input' v-model='light.name' />
+          <button @click='() => updateLight(light)'><i class="material-icons save-icon">check_circle_outline</i></button>
+        </div>
+      </section>
+      <section style='margin-top: 30px;'>
+        <h5>Scenes</h5>
+        <div v-for='scene in scenes' :key='"edit-scene-" + scene.id' class='acc-edit-row'>
+          <button @click='() => deleteScene(scene.id)'><i class="material-icons remove-icon">remove_circle_outline</i></button>
+          <input type='text' class='edit-accessory-input' v-model='scene.name' />
+          <button @click='() => updateScene(scene)'><i class="material-icons save-icon">check_circle_outline</i></button>
+        </div>
+      </section>
+    </div>
+
+    <div v-if='showCreatePanel'  style='border-bottom: 1px solid white; margin-bottom: 25px;padding-bottom: 25px;'>
+      <h3 style='margin-bottom: 15px;'>Mode:Create</h3>
+      <form @submit='evt => evt.preventDefault()'>
+        <input required v-model='createSceneObj.name' class='create-acc-input' placeholder='Scene name'/>
+
+        <!-- show all available lights -->
+        <v-container>
+          <h4>Available lights</h4>
+          <v-layout row wrap justify-center align-center>
+            <v-flex xs4 sm3 md2 v-for='light in lights' :key='"create-scene-" + light.id' class='create-scene-light-container' @click='() => {
+              if (createSceneObj.lights.find(l => l.id === light.id)) {
+                createSceneObj.lights = createSceneObj.lights.filter(l => l.id !== light.id)
+                createSceneObj.activeLights = createSceneObj.activeLights.filter(l => l.id !== light.id);
+                return;
+              }  
+              createSceneObj.lights = createSceneObj.lights.concat(light);
+            }'>
+              {{ light.name }}
+            </v-flex>
+
+          </v-layout>
+
+          <h4 style='margin-top: 20px;'>Selected Lights</h4>
+          <v-layout row wrap justify-center align-center>
+            <v-flex 
+            xs4 
+            sm3 
+            md2 
+            v-for='light in createSceneObj.lights' 
+            :key='"create-scene-" + light.id' 
+            class='create-scene-light-container' 
+            :class='{ "light-selected": createSceneObj.activeLights.find(l => l.id === light.id) }' 
+            @click='() => {
+              if (createSceneObj.activeLights.find(l => l.id === light.id)) {
+                createSceneObj.activeLights = createSceneObj.activeLights.filter(l => l.id !== light.id)
+                return;
+              }
+              createSceneObj.activeLights = createSceneObj.activeLights.concat(light)
+            }'
+            >              
+              {{ light.name }}
+            </v-flex>
+          </v-layout>
+        </v-container>
+
+        <!-- show selected lights -->
 
 
-    <h1 style='margin-top: 30px;'>Change the Colors!</h1>
-    <v-container>
-      <v-layout row wrap justify-center>
-        <light-color
-          v-for='light in lights' 
-          v-if='connectedLights.includes(light.id)'
-          :key='`light_color_${light.id}`' 
-          :light='light' 
-          :selected='selectedLights.includes(light.id)'
-          :handleLightClick='handleLightColorClick'
-        />
-      </v-layout>
-    </v-container>
-      
-    <v-container>
-      <v-layout row justify-center align-center>
-      	<v-flex xs1>
-      		{{ redSliderValue }}
-      	</v-flex>	
-        <v-flex xs11>
-          <input type="range" min="0" max="255" v-model='redSliderValue' class="slider" id="redSlider">
-        </v-flex>
-      </v-layout>
-      <v-layout row justify-center align-center>
-      	<v-flex xs1>
-      		{{ greenSliderValue }}
-      	</v-flex>	
-        <v-flex xs11>
-          <input type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
-        </v-flex>
-      </v-layout>
-      <v-layout row justify-center align-center>
-      	<v-flex xs1>
-      		{{ blueSliderValue }}
-      	</v-flex>	
-        <v-flex xs11>
-          <input type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
-        </v-flex>
-      </v-layout>
-      <!-- <v-layout row justify-center align-center>
-        <svg class='slider-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 76c48.1 0 93.3 18.7 127.3 52.7S436 207.9 436 256s-18.7 93.3-52.7 127.3S304.1 436 256 436c-48.1 0-93.3-18.7-127.3-52.7S76 304.1 76 256s18.7-93.3 52.7-127.3S207.9 76 256 76m0-28C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48z"/></svg>
-        <input type="range" min="0" max="255" v-model='brightnessSliderValue' class="slider" id="brightnessSlider">
-        <svg class='slider-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 387c-8.5 0-15.4 6.9-15.4 15.4v46.2c0 8.5 6.9 15.4 15.4 15.4s15.4-6.9 15.4-15.4v-46.2c0-8.5-6.9-15.4-15.4-15.4zM256 48c-8.5 0-15.4 6.9-15.4 15.4v46.2c0 8.5 6.9 15.4 15.4 15.4s15.4-6.9 15.4-15.4V63.4c0-8.5-6.9-15.4-15.4-15.4zM125 256c0-8.5-6.9-15.4-15.4-15.4H63.4c-8.5 0-15.4 6.9-15.4 15.4s6.9 15.4 15.4 15.4h46.2c8.5 0 15.4-6.9 15.4-15.4zM448.6 240.6h-46.2c-8.5 0-15.4 6.9-15.4 15.4s6.9 15.4 15.4 15.4h46.2c8.5 0 15.4-6.9 15.4-15.4s-6.9-15.4-15.4-15.4zM152.5 344.1c-4.1 0-8 1.6-10.9 4.5l-32.7 32.7c-2.9 2.9-4.5 6.8-4.5 10.9s1.6 8 4.5 10.9c2.9 2.9 6.8 4.5 10.9 4.5 4.1 0 8-1.6 10.9-4.5l32.7-32.7c6-6 6-15.8 0-21.8-2.9-2.9-6.8-4.5-10.9-4.5zM359.5 167.9c4.1 0 8-1.6 10.9-4.5l32.7-32.7c2.9-2.9 4.5-6.8 4.5-10.9s-1.6-8-4.5-10.9c-2.9-2.9-6.8-4.5-10.9-4.5-4.1 0-8 1.6-10.9 4.5l-32.7 32.7c-2.9 2.9-4.5 6.8-4.5 10.9s1.6 8 4.5 10.9c2.9 2.9 6.8 4.5 10.9 4.5zM130.7 108.9c-2.9-2.9-6.8-4.5-10.9-4.5-4.1 0-8 1.6-10.9 4.5-2.9 2.9-4.5 6.8-4.5 10.9 0 4.1 1.6 8 4.5 10.9l32.7 32.7c2.9 2.9 6.8 4.5 10.9 4.5 4.1 0 8-1.6 10.9-4.5 2.9-2.9 4.5-6.8 4.5-10.9s-1.6-8-4.5-10.9l-32.7-32.7zM370.4 348.6c-2.9-2.9-6.8-4.5-10.9-4.5-4.1 0-8 1.6-10.9 4.5-6 6-6 15.8 0 21.8l32.7 32.7c2.9 2.9 6.8 4.5 10.9 4.5 4.1 0 8-1.6 10.9-4.5 2.9-2.9 4.5-6.8 4.5-10.9s-1.6-8-4.5-10.9l-32.7-32.7zM256 160c-52.9 0-96 43.1-96 96s43.1 96 96 96 96-43.1 96-96-43.1-96-96-96z"/></svg>
-      </v-layout> -->
-    </v-container>
-    <!-- <hr> -->
+        <v-container>
+          <v-layout row justify-center align-center>
+            <v-flex xs1>
+              {{ createSceneObj.rSliderVal }}
+            </v-flex>	
+            <v-flex xs11>
+              <input type="range" min="0" max="255" v-model='createSceneObj.rSliderVal' class="slider" id="redSlider">
+            </v-flex>
+          </v-layout>
+          <v-layout row justify-center align-center>
+            <v-flex xs1>
+              {{ createSceneObj.gSliderVal }}
+            </v-flex>	
+            <v-flex xs11>
+              <input type="range" min="0" max="255" v-model='createSceneObj.gSliderVal' class="slider" id="greenSlider">
+            </v-flex>
+          </v-layout>
+          <v-layout row justify-center align-center>
+            <v-flex xs1>
+              {{ createSceneObj.bSliderVal }}
+            </v-flex>	
+            <v-flex xs11>
+              <input type="range" min="0" max="255" v-model='createSceneObj.bSliderVal' class="slider" id="blueSlider">
+            </v-flex>
+          </v-layout>
+        </v-container>
+        
+        <button class='create-btn' @click='createScene()' >Create!</button>
+        <p style='margin-top: 10px;' v-text='createSceneMessage'></p>
+      </form>
+    </div>
+
+    <div v-if='!showCreatePanel && !showEditPanel'>
+      <h1>Switches</h1>
+      <v-container>
+        <v-layout row wrap justify-center>
+          <light-switch
+            v-for='light in lights' 
+            :class='{ "switch-disabled": !connectedLights.find(l => l.id === light.id) }'
+            :key='`light_switch_${light.id}`' 
+            :light='light' 
+            :selected='switchesToggledOn.includes(light.id)'
+            :handleLightClick='handleLightSwitchClick'
+            :showSwitch='true'
+            :disabled='!connectedLights.find(l => l.id === light.id)'
+          />
+        </v-layout>
+      </v-container>
+
+
+      <h1 style='margin-top: 30px;'>Change the Colors!</h1>
+      <v-container>
+        <v-layout row wrap justify-center>
+          <light-color
+            v-for='light in connectedLights' 
+            
+            :key='`light_color_${light.id}`' 
+            :light='light' 
+            :selected='selectedLights.includes(light.id)'
+            :handleLightClick='handleLightColorClick'
+          />
+        </v-layout>
+      </v-container>
+        
+      <v-container>
+        <v-layout row justify-center align-center>
+          <v-flex xs1>
+            {{ redSliderValue }}
+          </v-flex>	
+          <v-flex xs11>
+            <input type="range" min="0" max="255" v-model='redSliderValue' class="slider" id="redSlider">
+          </v-flex>
+        </v-layout>
+        <v-layout row justify-center align-center>
+          <v-flex xs1>
+            {{ greenSliderValue }}
+          </v-flex>	
+          <v-flex xs11>
+            <input type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
+          </v-flex>
+        </v-layout>
+        <v-layout row justify-center align-center>
+          <v-flex xs1>
+            {{ blueSliderValue }}
+          </v-flex>	
+          <v-flex xs11>
+            <input type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
+          </v-flex>
+        </v-layout>
+        <!-- <v-layout row justify-center align-center>
+          <svg class='slider-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 76c48.1 0 93.3 18.7 127.3 52.7S436 207.9 436 256s-18.7 93.3-52.7 127.3S304.1 436 256 436c-48.1 0-93.3-18.7-127.3-52.7S76 304.1 76 256s18.7-93.3 52.7-127.3S207.9 76 256 76m0-28C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48z"/></svg>
+          <input type="range" min="0" max="255" v-model='brightnessSliderValue' class="slider" id="brightnessSlider">
+          <svg class='slider-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 387c-8.5 0-15.4 6.9-15.4 15.4v46.2c0 8.5 6.9 15.4 15.4 15.4s15.4-6.9 15.4-15.4v-46.2c0-8.5-6.9-15.4-15.4-15.4zM256 48c-8.5 0-15.4 6.9-15.4 15.4v46.2c0 8.5 6.9 15.4 15.4 15.4s15.4-6.9 15.4-15.4V63.4c0-8.5-6.9-15.4-15.4-15.4zM125 256c0-8.5-6.9-15.4-15.4-15.4H63.4c-8.5 0-15.4 6.9-15.4 15.4s6.9 15.4 15.4 15.4h46.2c8.5 0 15.4-6.9 15.4-15.4zM448.6 240.6h-46.2c-8.5 0-15.4 6.9-15.4 15.4s6.9 15.4 15.4 15.4h46.2c8.5 0 15.4-6.9 15.4-15.4s-6.9-15.4-15.4-15.4zM152.5 344.1c-4.1 0-8 1.6-10.9 4.5l-32.7 32.7c-2.9 2.9-4.5 6.8-4.5 10.9s1.6 8 4.5 10.9c2.9 2.9 6.8 4.5 10.9 4.5 4.1 0 8-1.6 10.9-4.5l32.7-32.7c6-6 6-15.8 0-21.8-2.9-2.9-6.8-4.5-10.9-4.5zM359.5 167.9c4.1 0 8-1.6 10.9-4.5l32.7-32.7c2.9-2.9 4.5-6.8 4.5-10.9s-1.6-8-4.5-10.9c-2.9-2.9-6.8-4.5-10.9-4.5-4.1 0-8 1.6-10.9 4.5l-32.7 32.7c-2.9 2.9-4.5 6.8-4.5 10.9s1.6 8 4.5 10.9c2.9 2.9 6.8 4.5 10.9 4.5zM130.7 108.9c-2.9-2.9-6.8-4.5-10.9-4.5-4.1 0-8 1.6-10.9 4.5-2.9 2.9-4.5 6.8-4.5 10.9 0 4.1 1.6 8 4.5 10.9l32.7 32.7c2.9 2.9 6.8 4.5 10.9 4.5 4.1 0 8-1.6 10.9-4.5 2.9-2.9 4.5-6.8 4.5-10.9s-1.6-8-4.5-10.9l-32.7-32.7zM370.4 348.6c-2.9-2.9-6.8-4.5-10.9-4.5-4.1 0-8 1.6-10.9 4.5-6 6-6 15.8 0 21.8l32.7 32.7c2.9 2.9 6.8 4.5 10.9 4.5 4.1 0 8-1.6 10.9-4.5 2.9-2.9 4.5-6.8 4.5-10.9s-1.6-8-4.5-10.9l-32.7-32.7zM256 160c-52.9 0-96 43.1-96 96s43.1 96 96 96 96-43.1 96-96-43.1-96-96-96z"/></svg>
+        </v-layout> -->
+      </v-container>
+      <!-- <hr> -->
 
     
-    <h1 style='margin-top: 30px;'>Scenes</h1>
-    <v-container>
-      <v-layout row wrap justify-center>
-        <scene 
-          v-for='scene in scenes'
-          :key='`scene_${scene.id}`'
-          :scene='scene'
-          :selected='selectedScenes.includes(scene.id)'
-          :handleSceneClick='handleSceneClick'
-        />
-      </v-layout>
-    </v-container>
+      <h1 style='margin-top: 30px;'>Scenes</h1>
+      <v-container>
+        <v-layout row wrap justify-center>
+          <scene 
+            v-for='scene in scenes'
+            :key='`scene_${scene.id}`'
+            :scene='scene'
+            :selected='selectedScenes.includes(scene.id)'
+            :handleSceneClick='handleSceneClick'
+          />
+        </v-layout>
+      </v-container>
+    </div>
   </div>
 </template>
 
@@ -100,15 +212,55 @@ export default {
       lights: [],
       scenes: [],
       groups: [],
-      connectedLights: [],
+      // allLights: [],
+      // connectedLights: [],
       switchesToggledOn: [],
       selectedLights: [],
       selectedScenes: [],
+
+      // createLightObj: {
+      //   id: null,
+      //   name: '',
+      //   active: false,
+      //   connected: false,
+      //   rgb: {
+      //     red: 0,
+      //     green: 0,
+      //     blue: 0
+      //   },
+      //   groups: []
+      // },
+      createSceneObj: {
+        id: null,
+        name: '',
+        image: '',
+        active: false,
+        lights: [],
+
+        // these will be filtered out when sent to the backend
+        activeLights: [],
+        rSliderVal: 0,
+        gSliderVal: 0,
+        bSliderVal: 0,
+      },
+      createSceneMessage: '',
+      // createGroupObj: {
+
+      // },
 
       redSliderValue: 0,
       greenSliderValue: 0,
       blueSliderValue: 0,
       brightnessSliderValue: 0,
+
+      showEditPanel: false,
+      showCreatePanel: false,
+    }
+  },
+
+  computed: {
+    connectedLights: function() {
+      return this.lights.filter(l => l.connected);
     }
   },
 
@@ -128,19 +280,27 @@ export default {
       this.greenSliderValue = Math.floor((this.greenSliderValue / 255) * val);
       this.blueSliderValue = Math.floor((this.blueSliderValue / 255) * val);
       this.runLights();
-    }
+    },
+
+    // update the lights for the 'create a scene' object
+    'createSceneObj.rSliderVal': function(redVal) {
+      this.updateNewSceneLights();
+    },
+    'createSceneObj.gSliderVal': function(greenVal) {
+      this.updateNewSceneLights();
+    },
+    'createSceneObj.bSliderVal': function(blueVal) {
+      this.updateNewSceneLights();
+    },
   },
 
   mounted() {
     // re-instantiate the lights and scenes
     this.socket.on('browser-reset', data => {
-    console.log(data)
       const { lights, scenes } = data;
       this.lights = lights;
       this.scenes = scenes;
       this.switchesToggledOn = lights.filter(l => l.active).map(l => l.id);
-      this.connectedLights = lights.filter(l => l.connected).map(l => l.id);
-      console.log(`connected: ${this.connectedLights}`);
     })
 
     // set a light button that could have been changed by another user
@@ -159,6 +319,38 @@ export default {
       //   this.selectedLights = this.selectedLights.concat(id);
       // }
     })
+
+    this.socket.on('light-deleted', data => {
+      const { id } = data;
+      this.lights = this.lights.filter(l => l.id !== id);
+    })
+
+    this.socket.on('update-light-info', data => {
+      const { light } = data;
+      this.lights = this.lights.map(l => {
+        if (l.id === light.id) {
+          return light;
+        }
+        return l;
+      })
+    })
+
+    this.socket.on('scene-deleted', data => {
+      const { id } = data;
+      this.scenes = this.scenes.filter(s => s.id !== id);
+    })
+
+    this.socket.on('scene-updated', data => {
+      console.log('modified')
+      const { scene } = data;
+      this.scenes = this.scenes.map(s => {
+        if (s.id === scene.id) {
+          return scene;
+        }
+        return s;
+      })
+    })
+
   },
 
   methods: {
@@ -170,6 +362,76 @@ export default {
           green: this.greenSliderValue,
           blue: this.blueSliderValue,
         }
+      })
+    },
+
+    deleteLight: function(id) {
+      this.socket.emit('delete-light', {
+        id
+      })
+    },
+
+    updateLight: function(light) {
+      this.socket.emit('update-light', {
+        light
+      })
+    },
+
+    deleteScene: function(id) {
+      this.socket.emit('delete-scene', {
+        id
+      })
+    },
+
+    updateScene: function(scene) {
+      this.socket.emit('update-scene', {
+        scene
+      })
+    },
+
+
+    createScene: function() {
+      if (!this.createScene.name) {
+        return;
+      }
+      
+      const found = this.scenes.find(scene => scene.name === this.createSceneObj.name);
+
+      if (found) {
+        this.createSceneMessage = 'Scene name already used!';
+        setTimeout(() => {
+          this.createSceneMessage = ''
+        }, 1500);
+        return;
+      } 
+
+      const { id, name, image, active, lights } = this.createSceneObj;
+      const scene = {
+          id,
+          name,
+          image,
+          active,
+          lights
+      }
+
+      this.socket.emit('add-scene', {
+        scene
+      })
+      this.createSceneMessage = 'Scene created successfully!';
+      setTimeout(() => {
+        this.createSceneMessage = ''
+      }, 1500);
+    },
+
+    updateNewSceneLights: function() {
+      const { rSliderVal, gSliderVal, bSliderVal } = this.createSceneObj;
+      this.createSceneObj.lights = this.createSceneObj.lights.map(selectedLight => {
+        if (this.createSceneObj.activeLights.find(activeLight => activeLight.id === selectedLight.id)) {
+          selectedLight.rgb.red = rSliderVal;
+          selectedLight.rgb.green = gSliderVal;
+          selectedLight.rgb.blue = bSliderVal;
+        }
+        return selectedLight;
       })
     },
 
@@ -203,24 +465,150 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .wrapper {
-  padding-top: 50px;
+  /* padding-top: 50px; */
   color: white;
 }
+
+/**
+  HEADER
+*/
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid white;
+  padding: 10px;
+  margin-bottom: 50px;
+}
+
+.header-action-btn{
+  margin: 5px;
+  border: 1px solid #fafafa;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.header-action-btn:hover {
+  background-color: rgba(255,255,255,0.2);
+}
+
+.header-action-btn-active {
+  background-color: rgba(41, 111, 250, 0.8);
+}
+
+
+
+/**
+  EDIT and CREATE panels
+*/
+
+.acc-edit-row{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.panel-action-btn {
+  margin: 5px;
+  border: 1px solid #fafafa;
+  padding: 10px;
+  border-radius: 5px;
+}
+.panel-action-btn:hover {
+  background-color: rgba(255,255,255,0.2);
+}
+
+.remove-icon,
+.save-icon {
+  font-size: 30px;
+}
+
+.remove-icon:hover {
+  color: rgba(255,100,100,0.8);
+}
+.save-icon:hover {
+  color: rgba(100,225,100,0.8);
+}
+
+.panel-delete-btn {
+  border: 1px solid red;
+  border-radius: 50%;
+  padding: 15px;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.panel-delete-btn:hover {
+  background-color: rgba(255,100,100, 0.8);
+  color: black;
+}
+.panel-delete-btn-text {
+  position: absolute;
+  font-family: serif;
+  font-size: 20px;
+}
+
+.edit-accessory-input {
+  padding: 5px;
+  border: 1px solid #fafafa;
+  border-radius: 5px;
+  margin: 0 10px;
+}
+
+.create-acc-input {
+  padding: 5px;
+  border-bottom: 1px solid #fafafa;
+  margin: 0 10px;
+}
+
+.create-scene-light-container {
+  border: 1px solid #fafafa;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 5px;
+}
+.create-scene-light-container:hover {
+  background-color: rgba(255,255,255,0.3);
+  cursor: pointer;
+}
+.light-selected {
+    border: 1px solid rgba(20,230,20, 0.7);
+}
+
+.create-btn {
+  border: 1px solid black;
+  padding: 10px;
+  background-color: rgba(100,225,100,0.8);
+  border-radius: 5px;
+}
+
+
+
+
+/**
+  LIGHTS
+*/
 
 .switch-disabled {
 	pointer-events: none;
 	opacity: 0.5;
 }
 
-.light-row {
-  padding: 15px;
-  border: 1px solid gray;
-  background-color: rgba(0,0,0,0.2);
-  cursor: pointer;
-}
-.light-row-active {
-  background-color: rgba(0,150,0,0.6);
-}
+
+
+
+
+
+
+
+/**
+  SLIDERS
+*/
 
 .slider-icon {
   height: 35px;

@@ -23,74 +23,6 @@ const sockets = {};
 
 let db = {};
 
-// const db = {
-//     lights: [
-//         // id 1 is the onboard LEDS
-//         {
-//             id: 1,
-//             name: `Jason's Room 16ft`,
-//             active: false,
-//             connected: false,
-//             rgb: {
-//                 red: 100,
-//                 green: 0,
-//                 blue: 0,
-//             },
-//             groups: []
-//         }
-//     ],
-//     scenes: [
-//         {
-//             id: 1,
-//             name: 'Bonne Nuit',
-//             image: 'goodnight.jpg',
-//             active: false,
-//             lights: [
-//                 {
-//                     id: 1,
-//                     rgb: {
-//                         red: 0,
-//                         green: 2,
-//                         blue: 4
-//                     }
-//                 },
-//                 {
-//                     id: 'b8:27:eb:99:c7:3b',
-//                     rgb: {
-//                         red: 0,
-//                         green: 2,
-//                         blue: 4
-//                     }
-//                 },
-//             ]
-//         },
-//         {
-//             id: 2,
-//             name: 'Bon Matin',
-//             image: 'goodmorning.jpg',
-//             active: false,
-//             lights: [
-//                 {
-//                     id: 1,
-//                     rgb: {
-//                         red: 180,
-//                         green: 160,
-//                         blue: 150
-//                     }
-//                 },
-//                 {
-//                     id: 'b8:27:eb:99:c7:3b',
-//                     rgb: {
-//                         red: 180,
-//                         green: 160,
-//                         blue: 150
-//                     }
-//                 },
-//             ]
-//         }
-//     ],
-// }
-
 let onboardLeds = {};
 if (prod) {
     onboardLeds = {
@@ -134,18 +66,6 @@ const readJson = (filename, cb) => {
     })
 }
 
-readJson('db.json', data => {
-    data.lights = data.lights.map(l => {
-        if (l.id === 1) {
-            return l;
-        }
-        
-        l.connected = false;
-        return l;
-    })
-
-    db = data;
-})
 
 const updateRemote = (data) => {
     if (!prod) { return }
@@ -200,7 +120,7 @@ const updateRemote = (data) => {
 const updateLightStatus = data => {
     const { id } = data;
     const lightIdx = db.lights.findIndex(l => l.id === id);
-
+ 
     if (db.lights[lightIdx].active) {
         db.lights[lightIdx].active = false;
     } else {
@@ -224,11 +144,16 @@ const updateLightStatus = data => {
 
 const runScene = data => {
 	const { id } = data;
-	const scene = db.scenes.find(scene => scene.id === id);
+    const scene = db.scenes.find(scene => scene.id === id);
 
 	const affectedLights = scene.lights;
 	affectedLights.forEach(l => {
-		const lightIdx = db.lights.findIndex(lit => lit.id === l.id);
+        const lightIdx = db.lights.findIndex(lit => lit.id === l.id);
+        
+        if (lightIdx === -1) {
+            return
+        }
+        
         db.lights[lightIdx].active = true;
         db.lights[lightIdx].rgb = Object.assign({}, l.rgb);
         io.emit('update-light', {
@@ -245,6 +170,67 @@ const runScene = data => {
 			active: true
 		})
 	})
+}
+
+const filterLightFromScene = id => {
+    db.scenes = db.scenes.map(scene => {
+        // filter out the light from the associated lights
+        scene.lights = scene.lights.filter(l => l.id !== id);
+        return scene;
+    })
+}
+
+const deleteLight = (data, socket) => {
+    const { id } = data;
+    db.lights = db.lights.filter(l => l.id !== id);
+    io.sockets.emit('light-deleted', {
+        id
+    })
+    filterLightFromScene(id);
+}
+
+const updateLight = (data, socket) => {
+    const { light } = data;
+    const idx = db.lights.findIndex(l => l.id === light.id);
+    db.lights[idx] = light;
+    io.sockets.emit('update-light-info', {
+        light
+    })
+}
+
+const deleteScene = (data, socket) => {
+    const { id } = data;
+    db.scenes = db.scenes.filter(s => s.id !== id);
+    io.sockets.emit('scene-deleted', {
+        id
+    })
+}
+
+const updateScene = data => {
+    const { scene } = data;
+    const idx = db.scenes.findIndex(s => s.id === scene.id);
+    db.scenes[idx] = scene;
+    io.sockets.emit('scene-updated', {
+        scene
+    })
+}
+
+const addScene = data => {
+    const { scene } = data;
+
+    // find the max id and add one for this scene
+    const max = db.scenes.reduce((prev, cur) => {
+        const { id } = cur;
+        if (id > prev) {
+            return id;
+        }
+        return prev;
+    }, 0);
+    const newId = max + 1;
+    scene.id = newId;
+    
+    db.scenes = db.scenes.concat(scene);
+    console.log(db.scenes)
 }
 
 
@@ -296,7 +282,7 @@ io.sockets.on('connection', (socket) => {
         sockets[macAddr] = socket;
     });
 
-    socket.on('disconnect', (data, idk) => {
+    socket.on('disconnect', (data) => {
         if (connectionType === 'satellite') {
             // remove socket
             delete sockets[mac];
@@ -325,8 +311,17 @@ io.sockets.on('connection', (socket) => {
     socket.on('toggle-light-switch', updateLightStatus);
 
     socket.on('run-scene', runScene);
-    
 
+    socket.on('delete-light', data => deleteLight(data, socket));
+
+    socket.on('update-light', data => updateLight(data, socket));
+
+    socket.on('delete-scene', data => deleteScene(data, socket));
+
+    socket.on('update-scene', updateScene);
+
+    socket.on('add-scene', addScene);
+    
 
 })
 
@@ -336,6 +331,28 @@ io.sockets.on('connection', (socket) => {
  * STARTUP FUNCTIONS
  */
 turnOnboardLedsOff();
+
+
+readJson('db.json', data => {
+    data.lights = data.lights.map(l => {
+        if (l.id === 1) {
+            return l;
+        }
+        
+        l.connected = false;
+        return l;
+    })
+
+    db = data;
+
+    const connected = db.lights.filter(l => l.connected);
+    connected.map(l => {
+        updateRemote({
+            lights: [l.id],
+            rgb: l.rgb
+        })
+    })
+})
 
 // start the main server 
 http.listen(PORT, () => {
