@@ -23,7 +23,7 @@
       <section style='margin-top: 30px;'>
         <h5>Scenes</h5>
         <div v-for='scene in scenes' :key='"edit-scene-" + scene.id' class='acc-edit-row'>
-          <button @click='() => deleteScene(scene.id)'><i class="material-icons remove-icon">remove_circle_outline</i></button>
+          <!-- <button @click='() => deleteScene(scene.id)'><i class="material-icons remove-icon">remove_circle_outline</i></button> -->
           <input type='text' class='edit-accessory-input' v-model='scene.name' />
           <button @click='() => updateScene(scene)'><i class="material-icons save-icon">check_circle_outline</i></button>
         </div>
@@ -128,7 +128,7 @@
       </v-container>
 
 
-      <h1 style='margin-top: 30px;'>Change the Colors!</h1>
+      <h1 style='margin-top: 30px;'>Custom Lighting</h1>
       <v-container>
         <v-layout row wrap justify-center>
           <light-color
@@ -140,9 +140,14 @@
             :handleLightClick='handleLightColorClick'
           />
         </v-layout>
+        <div style='margin-top: 25px'>
+          <button class='set-selected-lights-btn'>
+            Set selected lights to this color
+          </button>
+        </div>
       </v-container>
         
-      <v-container>
+      <v-container style='padding-top: 0'>
         <v-layout row justify-center align-center>
           <v-flex xs1>
             {{ redSliderValue }}
@@ -341,7 +346,6 @@ export default {
     })
 
     this.socket.on('scene-updated', data => {
-      console.log('modified')
       const { scene } = data;
       this.scenes = this.scenes.map(s => {
         if (s.id === scene.id) {
@@ -349,6 +353,13 @@ export default {
         }
         return s;
       })
+    }),
+
+    this.socket.on('get-light-rgb-status-for-sliders', data => {
+      const { rgb } = data.light;
+      this.redSliderValue = rgb.red;
+      this.greenSliderValue = rgb.green;
+      this.blueSliderValue = rgb.blue; 
     })
 
   },
@@ -449,8 +460,22 @@ export default {
       const found = this.selectedLights.find(val => val === id);
       if (found !== undefined) {
         this.selectedLights = this.selectedLights.filter(val => val !== id);
+
+        if (this.selectedLights.length) {
+          this.socket.emit('get-light-rgb-status-for-sliders', {
+            light: this.lights.find(l => l.id === this.selectedLights[this.selectedLights.length - 1].id)
+          })  
+        } else {
+          this.redSliderValue = 0;
+          this.greenSliderValue = 0;
+          this.blueSliderValue = 0;
+        }
+        
       } else {
         this.selectedLights = this.selectedLights.concat(id);
+        this.socket.emit('get-light-rgb-status-for-sliders', {
+          light: this.lights.find(l => l.id === id)
+        })    
       }
     },
     
@@ -458,6 +483,9 @@ export default {
       this.socket.emit('run-scene', { id });
     },
 
+    setAllSelectedLightsToColor: function() {
+      runLights();
+    }
   }
 };
 </script>
@@ -599,9 +627,15 @@ export default {
 	opacity: 0.5;
 }
 
-
-
-
+.set-selected-lights-btn {
+  border: 1px solid white;
+  background-color: rgba(255,255,255,0.1);
+  padding: 10px;
+  border-radius: 5px;
+}
+.set-selected-lights-btn:hover {
+  background-color: rgba(255,255,255,0.2);
+}
 
 
 
