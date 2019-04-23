@@ -7,30 +7,30 @@ cors();
 
 const prod = process.argv[2] === 'production';
 
-let Gpio;
+// let Gpio;
 
-if (prod) {
-    Gpio = require('pigpio').Gpio;
-}
+// if (prod) {
+//     Gpio = require('pigpio').Gpio;
+// }
 
 
 const PORT = 3000;
 
-const digitalOn = 1;
-const digitalOff = 0;
+// const digitalOn = 1;
+// const digitalOff = 0;
 
 const sockets = {};
 
 let db = {};
 
-let onboardLeds = {};
-if (prod) {
-    onboardLeds = {
-        red: new Gpio(17, { mode: Gpio.OUTPUT }),
-        green: new Gpio(22, { mode: Gpio.OUTPUT }),
-        blue: new Gpio(24, { mode: Gpio.OUTPUT }),
-    }
-}
+// let onboardLeds = {};
+// if (prod) {
+//     onboardLeds = {
+//         red: new Gpio(17, { mode: Gpio.OUTPUT }),
+//         green: new Gpio(22, { mode: Gpio.OUTPUT }),
+//         blue: new Gpio(24, { mode: Gpio.OUTPUT }),
+//     }
+// }
 
     
 const remoteTemplate = {
@@ -249,6 +249,25 @@ const getLightStatus = (data, socket) => {
 	})
 }
 
+const readDb = () => {
+    readJson('db.json', (err, data) => {
+        data.lights = data.lights.map(l => {
+            l.connected = false;
+            return l;
+        })
+
+        db = data;
+
+        const connected = db.lights.filter(l => l.connected);
+        connected.map(l => {
+            updateRemote({
+                lights: [l.id],
+                rgb: l.rgb
+            })
+        })
+    })
+}
+
 
 // listen for sockets
 io.sockets.on('connection', (socket) => {
@@ -336,7 +355,7 @@ io.sockets.on('connection', (socket) => {
 
     socket.on('get-light-rgb-status-for-sliders', data => getLightStatus(data, socket));
     
-
+    socket.on('reread-db', readDb);
 })
 
 
@@ -344,22 +363,7 @@ io.sockets.on('connection', (socket) => {
 /**
  * STARTUP FUNCTIONS
  */
-readJson('db.json', (err, data) => {
-    data.lights = data.lights.map(l => {
-        l.connected = false;
-        return l;
-    })
-
-    db = data;
-
-    const connected = db.lights.filter(l => l.connected);
-    connected.map(l => {
-        updateRemote({
-            lights: [l.id],
-            rgb: l.rgb
-        })
-    })
-})
+readDb();
 
 // start the main server 
 http.listen(PORT, () => {

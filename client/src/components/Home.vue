@@ -5,6 +5,7 @@
         <h1>Boo_LED</h1>
       </div>
       <div>
+        <button class='header-action-btn' @click='() => rereadDb'>Read DB</button>
         <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button>
         <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button>
       </div>
@@ -485,6 +486,10 @@ export default {
 
     setAllSelectedLightsToColor: function() {
       runLights();
+    },
+
+    rereadDb: function() {
+      this.socket.emit('reread-db');
     }
   }
 };
