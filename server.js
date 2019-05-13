@@ -7,30 +7,30 @@ cors();
 
 const prod = process.argv[2] === 'production';
 
-let Gpio;
+// let Gpio;
 
-if (prod) {
-    Gpio = require('pigpio').Gpio;
-}
+// if (prod) {
+//     Gpio = require('pigpio').Gpio;
+// }
 
 
 const PORT = 3000;
 
-const digitalOn = 1;
-const digitalOff = 0;
+// const digitalOn = 1;
+// const digitalOff = 0;
 
 const sockets = {};
 
 let db = {};
 
-let onboardLeds = {};
-if (prod) {
-    onboardLeds = {
-        red: new Gpio(17, { mode: Gpio.OUTPUT }),
-        green: new Gpio(22, { mode: Gpio.OUTPUT }),
-        blue: new Gpio(24, { mode: Gpio.OUTPUT }),
-    }
-}
+// let onboardLeds = {};
+// if (prod) {
+//     onboardLeds = {
+//         red: new Gpio(17, { mode: Gpio.OUTPUT }),
+//         green: new Gpio(22, { mode: Gpio.OUTPUT }),
+//         blue: new Gpio(24, { mode: Gpio.OUTPUT }),
+//     }
+// }
 
     
 const remoteTemplate = {
@@ -50,20 +50,26 @@ const remoteTemplate = {
 // read and write pi and RGB values locally instead of using a database for now
 const writeJson = (filename, data, cb) => {
     fs.writeFile(filename, JSON.stringify(data, null, 4), err => {
-        if (err) {
-            console.log(err);
-        }
+    	cb(err);
     })
 }
 
 const readJson = (filename, cb) => {
     fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
-            return console.log(err)
+            return cb(err, null);
         }
-        cb(JSON.parse(data));
+        return cb(null, JSON.parse(data));
         // return JSON.parse(data);
     })
+}
+
+const writeDbToFile = () => {
+	writeJson('./db.json', db, err => {
+		if (err) {
+			console.log(err);
+		}
+	})
 }
 
 
@@ -71,7 +77,7 @@ const updateRemote = (data) => {
     if (!prod) { return }
 
     const { lights, rgb } = data;
-	
+
     if (lights.includes(1)) {
         changeOnboardLeds(rgb);
     }
@@ -113,7 +119,9 @@ const updateRemote = (data) => {
     	catch (e) {
     		console.log(e)
     	}
-    })    
+    })   
+
+    writeDbToFile(); 
 }
 
 
@@ -132,14 +140,11 @@ const updateLightStatus = data => {
         active: db.lights[lightIdx].active
     })
 
-    // set the light to off or its previous value (and take out ID 1 since that is the onboard strip)
-    if (id === 1) {
-    	return db.lights[lightIdx].active ? changeOnboardLeds(db.lights[lightIdx].rgb) : turnOnboardLedsOff();
-    } 
-
     if (prod && sockets[id]) {
         sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb, active: db.lights[lightIdx].active });
     }
+
+    writeDbToFile();
 }
 
 const runScene = data => {
@@ -161,15 +166,13 @@ const runScene = data => {
             active: db.lights[lightIdx].active
         })
 
-        if (l.id === 1) {
-			return changeOnboardLeds(l.rgb);
-		}
-
 		sockets[l.id] && sockets[l.id].emit('change-leds', {
 			rgb: l.rgb,
 			active: true
 		})
 	})
+
+	writeDbToFile();
 }
 
 const filterLightFromScene = id => {
@@ -178,6 +181,7 @@ const filterLightFromScene = id => {
         scene.lights = scene.lights.filter(l => l.id !== id);
         return scene;
     })
+    writeDbToFile();
 }
 
 const deleteLight = (data, socket) => {
@@ -187,6 +191,7 @@ const deleteLight = (data, socket) => {
         id
     })
     filterLightFromScene(id);
+    writeDbToFile();
 }
 
 const updateLight = (data, socket) => {
@@ -196,6 +201,7 @@ const updateLight = (data, socket) => {
     io.sockets.emit('update-light-info', {
         light
     })
+    writeDbToFile();
 }
 
 const deleteScene = (data, socket) => {
@@ -204,6 +210,7 @@ const deleteScene = (data, socket) => {
     io.sockets.emit('scene-deleted', {
         id
     })
+    writeDbToFile();
 }
 
 const updateScene = data => {
@@ -213,6 +220,7 @@ const updateScene = data => {
     io.sockets.emit('scene-updated', {
         scene
     })
+    writeDbToFile();
 }
 
 const addScene = data => {
@@ -230,31 +238,43 @@ const addScene = data => {
     scene.id = newId;
     
     db.scenes = db.scenes.concat(scene);
-    console.log(db.scenes)
+    writeDbToFile();
 }
 
-
-const turnOnboardLedsOff = () => {
-    if (!prod) { return }
-
-    onboardLeds.red.digitalWrite(digitalOff);
-    onboardLeds.green.digitalWrite(digitalOff);
-    onboardLeds.blue.digitalWrite(digitalOff);
+const getLightStatus = (data, socket) => {
+	const { light } = data;
+	const idx = db.lights.findIndex(l => l.id === light.id);
+	socket.emit('get-light-rgb-status-for-sliders', {
+		light: db.lights[idx]
+	})
 }
 
-const changeOnboardLeds = (rgb) => {
-    if (!prod) { return }
+const readDb = () => {
+    readJson('db.json', (err, data) => {
+        data.lights = data.lights.map(l => {
+            l.connected = false;
+            return l;
+        })
 
-    onboardLeds.red.pwmWrite(rgb.red);
-    onboardLeds.green.pwmWrite(rgb.green);
-    onboardLeds.blue.pwmWrite(rgb.blue);
+        db = data;
+
+        const connected = db.lights.filter(l => l.connected);
+        connected.map(l => {
+            updateRemote({
+                lights: [l.id],
+                rgb: l.rgb
+            })
+        })
+    })
 }
+
 
 // listen for sockets
 io.sockets.on('connection', (socket) => {
     let connectionType = 'browser';  // satellite or browser (change it if it is a satellite)
     let mac;
-    console.log('new socket connected');
+    console.log(`${mac} connected`)
+
     /**
      * SATELLITE CONNECTION SOCKETS
      */
@@ -277,8 +297,17 @@ io.sockets.on('connection', (socket) => {
             db.lights = db.lights.concat(temp);
         } else {
             db.lights[macIdx].connected = true;
+            const light = db.lights[macIdx];
+            updateRemote({
+            	lights: [light.id],
+            	rgb: light.rgb
+            })
+            io.sockets.emit('update-light-info', {
+            	light
+            })
         }
 
+        writeDbToFile();
         sockets[macAddr] = socket;
     });
 
@@ -291,6 +320,7 @@ io.sockets.on('connection', (socket) => {
             // set the `connected` flag to false
             const macIdx = db.lights.findIndex(l => l.id === mac);
             db.lights[macIdx].connected = false;
+            writeDbToFile();
         }
     })
     
@@ -315,14 +345,16 @@ io.sockets.on('connection', (socket) => {
     socket.on('delete-light', data => deleteLight(data, socket));
 
     socket.on('update-light', data => updateLight(data, socket));
-
+ 
     socket.on('delete-scene', data => deleteScene(data, socket));
 
     socket.on('update-scene', updateScene);
 
     socket.on('add-scene', addScene);
-    
 
+    socket.on('get-light-rgb-status-for-sliders', data => getLightStatus(data, socket));
+    
+    socket.on('reread-db', readDb);
 })
 
 
@@ -330,29 +362,7 @@ io.sockets.on('connection', (socket) => {
 /**
  * STARTUP FUNCTIONS
  */
-turnOnboardLedsOff();
-
-
-readJson('db.json', data => {
-    data.lights = data.lights.map(l => {
-        if (l.id === 1) {
-            return l;
-        }
-        
-        l.connected = false;
-        return l;
-    })
-
-    db = data;
-
-    const connected = db.lights.filter(l => l.connected);
-    connected.map(l => {
-        updateRemote({
-            lights: [l.id],
-            rgb: l.rgb
-        })
-    })
-})
+readDb();
 
 // start the main server 
 http.listen(PORT, () => {
@@ -361,8 +371,7 @@ http.listen(PORT, () => {
 
 // listen for ctrl + c
 process.on('SIGINT', function () {
-    turnOnboardLedsOff();
-    writeJson('db.json', db);
+	writeDbToFile();
     setTimeout(() => {
         process.exit();    
     }, 250);
