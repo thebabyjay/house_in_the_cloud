@@ -129,13 +129,14 @@
       <h1 style='margin-top: 30px;'>Custom Lighting</h1>
       <v-container>
         <v-layout row wrap justify-center>
-          <multi-color-light-checkbox
-            v-for='mcLight in connectedMultiColorLights' 
-            :key='`light_color_${mcLight.id}`' 
-            :light='mcLight' 
-            :selected='selectedMultiColorLights.find(l => l.id === mcLight.id) ? true : false'
-            :handleLightClick='handleMultiColorLightCheckboxClick'
-          />
+          <!-- <light-color
+            v-for='light in connectedLights' 
+            
+            :key='`light_color_${light.id}`' 
+            :light='light' 
+            :selected='selectedLights.includes(light.id)'
+            :handleLightClick='handleLightColorClick'
+          /> -->
         </v-layout>
         <div style='margin-top: 25px'>
           <button class='set-selected-lights-btn'>
@@ -197,14 +198,14 @@
 <script>
 import io from 'socket.io-client';
 import PowerSwitch from './PowerSwitch';
-import MultiColorLightCheckbox from './MultiColorLightCheckbox';
+import LightColor from './LightColor';
 import Scene from './Scene';
 
 export default {
   name: 'Home',
   components: {
     PowerSwitch,
-    MultiColorLightCheckbox,
+    LightColor,
     Scene
   },
   data() {
@@ -213,14 +214,14 @@ export default {
       socket: io(mainServerUrl),
       db: {},
 
-      selectedMultiColorLights: [],
       // lights: [],
       // scenes: [],
       // groups: [],
       // allLights: [],
       // connectedLights: [],
-      // switchesToggledOn: [],
-      // selectedScenes: [],
+      switchesToggledOn: [],
+      selectedLights: [],
+      selectedScenes: [],
 
       // createLightObj: {
       //   id: null,
@@ -291,9 +292,6 @@ export default {
     connectedLights: function() {
       return this.lights.filter(l => l.connected);
     },
-    connectedMultiColorLights: function() {
-      return this.connectedLights.filter(cl => cl.deviceType === 'LIGHT_MULTICOLOR');
-    },
     switchesActivated: function() {
       const activated = this.connectedDevices.filter(cd => cd.active)
         // .map(cd => cd.id);
@@ -305,13 +303,13 @@ export default {
 
   watch: {
     redSliderValue: function(val) {
-      this.updateMultiColorLights();
+      this.runLights();
     },
     greenSliderValue: function(val) {
-      this.updateMultiColorLights();
+      this.runLights();
     },
     blueSliderValue: function(val) {
-      this.updateMultiColorLights();
+      this.runLights();
     },
     brightnessSliderValue: function(val) {
     	console.log(val / (this.redSliderValue / 255))
@@ -336,6 +334,12 @@ export default {
   mounted() {
     // re-instantiate the lights and scenes
     this.socket.on('browser-init', data => {
+      // const { lights, scenes } = data.devices;
+      // this.lights = lights;
+      // this.scenes = scenes;
+      // this.switchesToggledOn = lights.filter(l => l.active).map(l => l.id);
+
+      console.log(data)
       this.db = data;
     })
 
@@ -396,19 +400,16 @@ export default {
   },
 
   methods: {
-    updateMultiColorLights: function() {
-      this.selectedMultiColorLights = this.selectedMultiColorLights.map(mcl => {
-        const { redSliderValue, greenSliderValue, blueSliderValue } = this;
-        mcl.status = {
-          red: redSliderValue,
-          green: greenSliderValue,
-          blue: blueSliderValue
-        }
-        return mcl;
-      })
-
-      this.socket.emit('update-devices', { devices: this.selectedMultiColorLights });
-    },
+    // runLights: function() {
+    //   this.socket.emit('update-lights', {
+    //     lights: this.selectedLights,
+    //     rgb: {
+    //       red: this.redSliderValue,
+    //       green: this.greenSliderValue,
+    //       blue: this.blueSliderValue,
+    //     }
+    //   })
+    // },
 
     // deleteLight: function(id) {
     //   this.socket.emit('delete-light', {
@@ -483,45 +484,37 @@ export default {
 
 
     // // EVENT HANDLERS
-    handlePowerSwitchClick: function(device) {
+    handlePowerSwitchClick: function(id) {
+      const device = this.devices.find(d => d.id === id);
       device.active = !device.active;
-      console.log(device)
       this.socket.emit('toggle-device', { device });
     },
     
-    handleMultiColorLightCheckboxClick: function(light) {
-      // this.socket.emit('update-light-color', { id });
+    // handleLightColorClick: function(id) {
+    //   // this.socket.emit('update-light-color', { id });
 
-      // hold all lights being changed locally
-      const found = this.selectedMultiColorLights.find(l => l.id === light.id);
+    //   // hold all lights being changed locally
+    //   const found = this.selectedLights.find(val => val === id);
+    //   if (found !== undefined) {
+    //     this.selectedLights = this.selectedLights.filter(val => val !== id);
 
-
-      if (!found) {
-        this.selectedMultiColorLights = this.selectedMultiColorLights.concat(light);
-
-        // get this light's last known RGB value
-        const { red, green, blue } = light.status;
-        this.redSliderValue = red;
-        this.greenSliderValue = green;
-        this.blueSliderValue = blue;
-        return;
-      } 
-      
-      this.selectedMultiColorLights = this.selectedMultiColorLights.filter(sl => sl.id !== light.id);
-
-      // get the previously selected light's last known RGB value
-      if (!this.selectedMultiColorLights.length) {
-        this.redSliderValue = 0;
-        this.greenSliderValue = 0;
-        this.blueSliderValue = 0;
-      } else {
-        const previousSelectedLight = this.selectedMultiColorLights[this.selectedMultiColorLights.length - 1];
-        const { red, green, blue } = previousSelectedLight;
-        this.redSliderValue = red;
-        this.greenSliderValue = green;
-        this.blueSliderValue = blue;
-      }
-    },
+    //     if (this.selectedLights.length) {
+    //       this.socket.emit('get-light-rgb-status-for-sliders', {
+    //         light: this.lights.find(l => l.id === this.selectedLights[this.selectedLights.length - 1].id)
+    //       })  
+    //     } else {
+    //       this.redSliderValue = 0;
+    //       this.greenSliderValue = 0;
+    //       this.blueSliderValue = 0;
+    //     }
+        
+    //   } else {
+    //     this.selectedLights = this.selectedLights.concat(id);
+    //     this.socket.emit('get-light-rgb-status-for-sliders', {
+    //       light: this.lights.find(l => l.id === id)
+    //     })    
+    //   }
+    // },
     
     // handleSceneClick: function(id) {
     //   this.socket.emit('run-scene', { id });

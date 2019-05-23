@@ -1,59 +1,52 @@
-const http      = require('http').createServer();
-const fs        = require('fs');
-const io        = require('socket.io')(http)
-const cors      = require('cors');
+const http          = require('http').createServer();
+const fs            = require('fs');
+const io            = require('socket.io')(http)
+const cors          = require('cors');
+const deviceTypes   = require('./device/types')
+const deviceCategories = require('./device/categories');
+const deviceTemplates = require('./templates/templates');
+
+const isProduction = process.argv[2] === 'production';
+const PORT = 3000;
+
+const sockets = {};
+let db = {};
+// let db = {
+//     "devices": {
+//         "lights": [],
+//         "switches": []
+//     },
+//     "scenes": [],
+//     "groups": []
+// };
 
 cors();
 
-const prod = process.argv[2] === 'production';
 
-// let Gpio;
+/**
+ * FUNCTIONS
+ * @func writeJson
+ * @func readJson
+ * @func writeDbToFile
+ * 
+ */
 
-// if (prod) {
-//     Gpio = require('pigpio').Gpio;
-// }
-
-
-const PORT = 3000;
-
-// const digitalOn = 1;
-// const digitalOff = 0;
-
-const sockets = {};
-
-let db = {};
-
-// let onboardLeds = {};
-// if (prod) {
-//     onboardLeds = {
-//         red: new Gpio(17, { mode: Gpio.OUTPUT }),
-//         green: new Gpio(22, { mode: Gpio.OUTPUT }),
-//         blue: new Gpio(24, { mode: Gpio.OUTPUT }),
-//     }
-// }
-
-    
-const remoteTemplate = {
-    id: null,
-    name: ``,
-    active: false,
-    connected: false,
-    rgb: {
-        red: 0,
-        green: 0,
-        blue: 0,
-    },
-    groups: []
-}
-
-
-// read and write pi and RGB values locally instead of using a database for now
+ /**
+  * @desc write JSON data to a given file
+  * @param {string} filename 
+  * @param {object} data 
+  * @param {function} cb 
+  */
 const writeJson = (filename, data, cb) => {
     fs.writeFile(filename, JSON.stringify(data, null, 4), err => {
     	cb(err);
     })
 }
-
+/**
+ * @desc read JSON data from a given file
+ * @param {string} filename 
+ * @param {function} cb 
+ */
 const readJson = (filename, cb) => {
     fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
@@ -64,7 +57,10 @@ const readJson = (filename, cb) => {
     })
 }
 
-const writeDbToFile = () => {
+/**
+ * @desc write the local database out to a file to save it for data persistence
+ */
+const writeDb = () => {
 	writeJson('./db.json', db, err => {
 		if (err) {
 			console.log(err);
@@ -72,289 +68,180 @@ const writeDbToFile = () => {
 	})
 }
 
-
-const updateRemote = (data) => {
-    if (!prod) { return }
-
-    const { lights, rgb } = data;
-
-    if (lights.includes(1)) {
-        changeOnboardLeds(rgb);
-    }
-
-    // change this remote pi's values in the global object
-    const { red, green, blue } = rgb;
-    db.lights = db.lights.map(l => {
-        if (lights.includes(l.id)) {
-            l.rgb.red = Number(red);
-            l.rgb.green = Number(green);
-            l.rgb.blue = Number(blue);
-        }
-        return l;
-    });
-
-    // filter out 1 since that is the onboard LED
-    const affected = lights.filter(id => id !== 1);
-
-    lights.forEach(id => {
-        const lightIdx = db.lights.findIndex(l => l.id === id);
-        db.lights[lightIdx].active = true;
-        io.emit('update-light', {
-            id,
-            active: db.lights[lightIdx].active
-        })
-    })
-
-    // send the value to all affected satellites
-    affected.forEach(id => {
-    	try {
-			const lightIdx = db.lights.findIndex(l => l.id === id);
-            sockets[id] && sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb, active: db.lights[lightIdx].active });
-            db.lights[lightIdx].active = true;
-            io.emit('update-light', {
-                id,
-                active: db.lights[lightIdx].active
-            })
-    	}
-    	catch (e) {
-    		console.log(e)
-    	}
-    })   
-
-    writeDbToFile(); 
-}
-
-
-const updateLightStatus = data => {
-    const { id } = data;
-    const lightIdx = db.lights.findIndex(l => l.id === id);
- 
-    if (db.lights[lightIdx].active) {
-        db.lights[lightIdx].active = false;
-    } else {
-        db.lights[lightIdx].active = true;
-    }
-
-    io.emit('update-light', {
-        id,
-        active: db.lights[lightIdx].active
-    })
-
-    if (prod && sockets[id]) {
-        sockets[id].emit('change-leds', { rgb: db.lights[lightIdx].rgb, active: db.lights[lightIdx].active });
-    }
-
-    writeDbToFile();
-}
-
-const runScene = data => {
-	const { id } = data;
-    const scene = db.scenes.find(scene => scene.id === id);
-
-	const affectedLights = scene.lights;
-	affectedLights.forEach(l => {
-        const lightIdx = db.lights.findIndex(lit => lit.id === l.id);
-        
-        if (lightIdx === -1) {
-            return
-        }
-        
-        db.lights[lightIdx].active = true;
-        db.lights[lightIdx].rgb = Object.assign({}, l.rgb);
-        io.emit('update-light', {
-            id: l.id,
-            active: db.lights[lightIdx].active
-        })
-
-		sockets[l.id] && sockets[l.id].emit('change-leds', {
-			rgb: l.rgb,
-			active: true
-		})
-	})
-
-	writeDbToFile();
-}
-
-const filterLightFromScene = id => {
-    db.scenes = db.scenes.map(scene => {
-        // filter out the light from the associated lights
-        scene.lights = scene.lights.filter(l => l.id !== id);
-        return scene;
-    })
-    writeDbToFile();
-}
-
-const deleteLight = (data, socket) => {
-    const { id } = data;
-    db.lights = db.lights.filter(l => l.id !== id);
-    io.sockets.emit('light-deleted', {
-        id
-    })
-    filterLightFromScene(id);
-    writeDbToFile();
-}
-
-const updateLight = (data, socket) => {
-    const { light } = data;
-    const idx = db.lights.findIndex(l => l.id === light.id);
-    db.lights[idx] = light;
-    io.sockets.emit('update-light-info', {
-        light
-    })
-    writeDbToFile();
-}
-
-const deleteScene = (data, socket) => {
-    const { id } = data;
-    db.scenes = db.scenes.filter(s => s.id !== id);
-    io.sockets.emit('scene-deleted', {
-        id
-    })
-    writeDbToFile();
-}
-
-const updateScene = data => {
-    const { scene } = data;
-    const idx = db.scenes.findIndex(s => s.id === scene.id);
-    db.scenes[idx] = scene;
-    io.sockets.emit('scene-updated', {
-        scene
-    })
-    writeDbToFile();
-}
-
-const addScene = data => {
-    const { scene } = data;
-
-    // find the max id and add one for this scene
-    const max = db.scenes.reduce((prev, cur) => {
-        const { id } = cur;
-        if (id > prev) {
-            return id;
-        }
-        return prev;
-    }, 0);
-    const newId = max + 1;
-    scene.id = newId;
-    
-    db.scenes = db.scenes.concat(scene);
-    writeDbToFile();
-}
-
-const getLightStatus = (data, socket) => {
-	const { light } = data;
-	const idx = db.lights.findIndex(l => l.id === light.id);
-	socket.emit('get-light-rgb-status-for-sliders', {
-		light: db.lights[idx]
-	})
-}
-
+/**
+ * @desc read database from file
+ * @desc whenever the database is read in (usually on server startup), all devices should be set to 'disconnected'
+ */
 const readDb = () => {
     readJson('db.json', (err, data) => {
-        data.lights = data.lights.map(l => {
-            l.connected = false;
-            return l;
-        })
-
-        db = data;
-
-        const connected = db.lights.filter(l => l.connected);
-        connected.map(l => {
-            updateRemote({
-                lights: [l.id],
-                rgb: l.rgb
+        Object.keys(data.devices).forEach(deviceType => {
+            data.devices[deviceType] = data.devices[deviceType].map(device => {
+                device.connected = true;
+                return device;
             })
         })
+        
+        db = data;
+        // const connected = db.lights.filter(l => l.connected);
+        // connected.map(l => {
+        //     updateRemote({
+        //         lights: [l.id],
+        //         rgb: l.rgb
+        //     })
+        // })
     })
 }
 
+const updateSatellites = deviceArr => {
+    console.log(deviceArr);
+    if (!isProduction) return;
 
-// listen for sockets
-io.sockets.on('connection', (socket) => {
-    let connectionType = 'browser';  // satellite or browser (change it if it is a satellite)
-    let mac;
-    console.log(`${mac} connected`)
-
-    /**
-     * SATELLITE CONNECTION SOCKETS
-     */
-    
-    // inital hit after connection
-    socket.on('satellite-init', data => {
-        const { macAddr, remoteName } = data;
-        console.log(macAddr)
-
-        connectionType = 'satellite';
-        mac = macAddr;
-
-        // see if MAC address already exists
-        const macIdx = db.lights.findIndex(l => l.id === macAddr)
-        if (macIdx < 0) {
-            const temp = Object.assign({}, remoteTemplate);
-            temp.id = macAddr;
-            temp.name = remoteName;
-            temp.connected = true;
-            db.lights = db.lights.concat(temp);
-        } else {
-            db.lights[macIdx].connected = true;
-            const light = db.lights[macIdx];
-            updateRemote({
-            	lights: [light.id],
-            	rgb: light.rgb
-            })
-            io.sockets.emit('update-light-info', {
-            	light
-            })
+    deviceArr.forEach(device => {
+        if (sockets[device.id]) {
+            sockets[device.id].emit('update-satellite', { device })
         }
+        // sockets[device.id] && sockets[device.id].emit('update-satellite', { device })
+    })    
+    emitBrowserInit();
+}
 
-        writeDbToFile();
-        sockets[macAddr] = socket;
-    });
+const toggleDevice = data => {
+    const { device } = data;
+    const { deviceType } = device;
+    let idx;
+    switch(deviceType) {
+        case deviceTypes.LIGHT_MULTICOLOR:
+        case deviceTypes.LIGHT_UNICOLOR_DIMMABLE:
+        case deviceTypes.LIGHT_UNICOLOR_NONDIMMABLE:
+            idx = db.devices.lights.findIndex(l => l.id === device.id);
+            db.devices.lights[idx] = device;
+            break;
+        case deviceTypes.SWITCH:
+            idx = db.devices.switches.findIndex(l => l.id === device.id);
+            db.devices.switches[idx] = device;
+            break;
+        default:
+            break;
+    }
+    updateSatellites([device])
+    emitBrowserInit();
+}
 
-    socket.on('disconnect', (data) => {
-        if (connectionType === 'satellite') {
-            // remove socket
-            delete sockets[mac];
-            // sockets = sockets[mac] = null;
+const updateDevices = ({ devices }) => {
+    if (!devices.length) return;
 
-            // set the `connected` flag to false
-            const macIdx = db.lights.findIndex(l => l.id === mac);
-            db.lights[macIdx].connected = false;
-            writeDbToFile();
+    devices.forEach(device => {
+        const { deviceType } = device;
+        let idx;
+        switch(deviceType) {
+            case deviceTypes.LIGHT_MULTICOLOR:
+            case deviceTypes.LIGHT_UNICOLOR_DIMMABLE:
+            case deviceTypes.LIGHT_UNICOLOR_NONDIMMABLE:
+                idx = db.devices.lights.findIndex(l => l.id === device.id);
+                db.devices.lights[idx] = device;
+                break;
+            case deviceTypes.SWITCH:
+                idx = db.devices.switches.findIndex(l => l.id === device.id);
+                db.devices.switches[idx] = device;
+                break;
+            default:
+                break;
         }
     })
-    
-    
-    
-    
+    updateSatellites(devices)
+    emitBrowserInit();
+}
+
+
+
+
+
+
+
+
+
+const emitBrowserInit = () => {
+    io.emit('browser-init', { ...db });
+}
+
+
+/**
+ * SOCKETS
+ * 
+ * -- INCOMING 
+ * @event connection        - initial socket connection either from satellite or browser 
+ * @event satellite-init    - initialize a satellite device
+ * @event disconnect        - runs when a socket disconnects (satellite and browser)
+ * 
+ * @event create-scene
+ * @event update-scene
+ * @event delete-scene
+ * 
+ * @event update-devices
+ * @event toggle-device
+ * @event delete-device
+ * 
+ * @event reread-database
+ * 
+ * -- OUTGOING
+ */
+io.sockets.on('connection', socket => {
+    let clientType = 'browser'; // browser or satellite
+    let macAddr;
+
+    /**
+     * SATELIITE PI CONNECTION SOCKETS
+     */
+    socket.on('satellite-init', data => {
+        const { macAddr, satelliteName, deviceType, deviceCategory } = data;
+        console.log(`${macAddr} connected`)
+
+        connectionType = 'satellite';
+
+        // console.log(data)
+
+        // see if MAC address already exists
+        const macIdx = db.devices[deviceCategory].findIndex(d => d.id === macAddr)
+
+        if (macIdx < 0) {
+            const temp = Object.assign({}, deviceTemplates[deviceType]);
+            temp.id = macAddr;
+            temp.name = satelliteName;
+            temp.connected = true;
+            db.devices[deviceCategory] = db.devices[deviceCategory].concat(temp);
+        } else {
+            db.devices[deviceCategory][macIdx].connected = true;
+
+            // const light = db.lights[macIdx];
+            // updateRemote({
+            // 	lights: [light.id],
+            // 	rgb: light.rgb
+            // })
+            // io.sockets.emit('update-light-info', {
+            // 	light
+            // })
+        }
+
+        updateSatellites([db.devices[deviceCategory][macIdx]]);
+        // writeDb();
+        sockets[macAddr] = socket;
+    })
+
+    socket.on('disconnect', data => {
+        if (clientType === 'satellite') {
+
+        }
+    })
+
+
     /**
      * BROWSER CONNECTION SOCKETS
      */
+    emitBrowserInit();
+
+    socket.on('update-devices', updateDevices);
+    socket.on('toggle-device', toggleDevice);
     
-    // send initial data
-    socket.emit('browser-reset', { ...db })
-
-    socket.on('update-lights', updateRemote);
-
-    // socket.on('update-light-color', updateLightColor);
-
-    socket.on('toggle-light-switch', updateLightStatus);
-
-    socket.on('run-scene', runScene);
-
-    socket.on('delete-light', data => deleteLight(data, socket));
-
-    socket.on('update-light', data => updateLight(data, socket));
- 
-    socket.on('delete-scene', data => deleteScene(data, socket));
-
-    socket.on('update-scene', updateScene);
-
-    socket.on('add-scene', addScene);
-
-    socket.on('get-light-rgb-status-for-sliders', data => getLightStatus(data, socket));
-    
-    socket.on('reread-db', readDb);
 })
 
 
@@ -366,13 +253,15 @@ readDb();
 
 // start the main server 
 http.listen(PORT, () => {
-    console.log(`Boo-LED listening on port ${PORT}`);
+    console.log(`House_in_the_Cloud listening on port ${PORT}`);
 })
 
 // listen for ctrl + c
 process.on('SIGINT', function () {
-	writeDbToFile();
-    setTimeout(() => {
+    writeDb();
+    
+    // allow time for the database to write to the file
+    setTimeout(() => { 
         process.exit();    
     }, 250);
     

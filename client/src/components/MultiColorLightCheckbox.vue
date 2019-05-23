@@ -4,7 +4,7 @@
         <div 
             class="light-button flex-centered" 
             :class="[selected ? 'light-active' : 'light-inactive']"
-            @click='() => handleLightClick(light.id)'
+            @click='() => handleLightClick(light)'
         >
             <span>{{ light.name }}</span>
         </div>
@@ -15,7 +15,7 @@
 <script>
 
 export default {
-    name: 'LightColor',
+    name: 'MultiColorLightCheckbox',
     props: {
         light: Object,
         selected: Boolean,

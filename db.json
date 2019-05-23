@@ -1,5 +1,59 @@
 {
-    "lights": [
-    ],
-    "scenes": []
+    "devices": {
+        "lights": [
+            {
+                "id": 1,
+                "name": "MULTICOLOR",
+                "type": "LIGHT_MULTICOLOR",
+                "active": false,
+                "connected": true,
+                "status": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            },
+            {
+                "id": 2,
+                "name": "DIMMABLE",
+                "type": "LIGHT_UNICOLOR_DIMMABLE",
+                "active": false,
+                "connected": true,
+                "status": 0
+            },
+            {
+                "id": 3,
+                "name": "NONDIMMABLE",
+                "type": "LIGHT_UNICOLOR_NONDIMMABLE",
+                "active": false,
+                "connected": true,
+                "status": 0
+            },
+            {
+                "id": "4c:cc:6a:d3:fd:dc",
+                "name": "Jason's Room 4ft",
+                "deviceType": "LIGHT_MULTICOLOR",
+                "deviceCategory": "lights",
+                "active": false,
+                "connected": true,
+                "status": {
+                    "red": 0,
+                    "green": 0,
+                    "blue": 0
+                }
+            }
+        ],
+        "switches": [
+            {
+                "id": 4,
+                "name": "SWITCH",
+                "type": "SWITCH",
+                "active": false,
+                "connected": true,
+                "status": 0
+            }
+        ]
+    },
+    "scenes": [],
+    "groups": []
 }

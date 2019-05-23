@@ -4,11 +4,11 @@
         <div 
             class="light-button flex-centered" 
             :class="[selected ? 'light-active' : 'light-inactive']"
-            @click='() => handleLightClick(light.id)'
+            @click='() => handlePowerSwitchClick(device)'
         >
-            <span>{{ light.name }}</span>
+            <span>{{ device.name }}</span>
             <label v-if='!disabled' class='switch'>
-                <input type="checkbox" :checked='selected' @click='() => handleLightClick(light.id)'>
+                <input type="checkbox" :checked='selected' @click='() => handlePowerSwitchClick(device)'>
                 <span class="slider round"></span>
             </label>
             <div v-if='disabled' style='margin-top: 20px; color: rgba(255,100,100,0.8);'>Device not connected</div>
@@ -20,12 +20,15 @@
 <script>
 
 export default {
-    name: 'LightSwitch',
+    name: 'PowerSwitch',
     props: {
-        light: Object,
+        device: Object,
         selected: Boolean,
-        handleLightClick: Function,
-        disabled: Boolean
+        handlePowerSwitchClick: Function,
+        disabled: {
+            type: Boolean,
+            default: false
+        }
     },   
 }
 </script>
