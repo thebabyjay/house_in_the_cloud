@@ -17,16 +17,27 @@ if (['x64', 'x32'].includes(os.arch())) {
 } else {
     macAddr = os.networkInterfaces().wlan0[0].mac;
 }
-// const Gpio = require('pigpio').Gpio, //include pigpio to interact with the GPIO
-//     ledRed = new Gpio(2, {
-//         mode: Gpio.OUTPUT
-//     }),
-//     ledGreen = new Gpio(3, {
-//         mode: Gpio.OUTPUT
-//     }),
-//     ledBlue = new Gpio(4, {
-//         mode: Gpio.OUTPUT 
-//     });
+console.log(macAddr)
+const Gpio = require('pigpio').Gpio; //include pigpio to interact with the GPIO
+
+let ledRed, ledGreen, ledBlue, ledWhite, switchPin;
+
+switch (config.deviceType) {
+    case deviceTypes.LIGHT_MULTICOLOR:
+        ledRed = new Gpio(2, { mode: Gpio.OUTPUT });
+        ledGreen = new Gpio(3, { mode: Gpio.OUTPUT });
+        ledBlue = new Gpio(4, { mode: Gpio.OUTPUT });
+        break;
+    case deviceTypes.LIGHT_UNICOLOR_DIMMABLE:
+    case deviceTypes.LIGHT_UNICOLOR_NONDIMMABLE:
+        ledWhite = new Gpio(2, { mode: Gpio.OUTPUT });
+        break;
+    case deviceTypes.SWITCH:
+        switchPin = new Gpio(2, { mode: Gpio.OUTPUT });
+        break;
+    default:
+        break;
+}
 
 
 /*
@@ -52,6 +63,7 @@ const handleSwitchChange = (device) => {
 }
 
 const handleLightMultiColorChange = (device) => {
+    console.log('hit')
     const { red, green, blue } = device.status;
     ledRed.pwmWrite(red);
     ledGreen.pwmWrite(green);
@@ -60,20 +72,18 @@ const handleLightMultiColorChange = (device) => {
 
 const handleLightUniColorDimmableChange = (device) => {
     const { status } = device;
-    ledRed.pwmWrite(status);
-    ledGreen.pwmWrite(status);
-    ledBlue.pwmWrite(status);
+    ledWhite.pwmWrite(status);
 }
 
 const handleLightUniColorNondimmableChange = (device) => {
     const { status } = device;
-    ledRed.analogWrite(status);
+    ledWhite.analogWrite(status);
 }
 
 
 
 const updateDevice = device => {
-    switch(device.type) {
+    switch(device.deviceType) {
         case deviceTypes.SWITCH:
             handleSwitchChange(device);
             break;
@@ -86,7 +96,8 @@ const updateDevice = device => {
         case deviceTypes.LIGHT_UNICOLOR_NONDIMMABLE:
             handleLightUniColorNondimmableChange(device);
             break;
-
+        default: 
+            break;
     }
 }
 
@@ -117,7 +128,6 @@ socket.on('connect', function() {
 })
 
 socket.on('satellite-init', data => {
-    console.log('response', data)
     satelliteId = data.id;
 })
 // socket.on('info', function(data) {
@@ -126,8 +136,8 @@ socket.on('satellite-init', data => {
 
 // socket.on('change-leds', function(data) {
 socket.on('update-satellite', function(data) {
-    const { mac, device } = data;
-    console.log(data)
+    const { device } = data;
+    const { id: mac } = device;
     if (mac === macAddr) {
         updateDevice(device);
     }
