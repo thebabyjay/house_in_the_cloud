@@ -63,11 +63,20 @@ const handleSwitchChange = (device) => {
 }
 
 const handleLightMultiColorChange = (device) => {
-    console.log('hit')
-    const { red, green, blue } = device.status;
-    ledRed.pwmWrite(red);
-    ledGreen.pwmWrite(green);
-    ledBlue.pwmWrite(blue);
+    try {
+        if (!device.active) {
+            ledRed.analogWrite(0);
+            ledGreen.analogWrite(0);
+            ledBlue.analogWrite(0);    
+            return;
+        }
+        const { red, green, blue } = device.status;
+        ledRed.pwmWrite(red);
+        ledGreen.pwmWrite(green);
+        ledBlue.pwmWrite(blue);
+    } catch(err) {
+        console.log(err)
+    }
 }
 
 const handleLightUniColorDimmableChange = (device) => {
