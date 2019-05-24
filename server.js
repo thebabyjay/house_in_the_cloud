@@ -76,7 +76,7 @@ const readDb = () => {
     readJson('db.json', (err, data) => {
         Object.keys(data.devices).forEach(deviceType => {
             data.devices[deviceType] = data.devices[deviceType].map(device => {
-                device.connected = true;
+                device.connected = false;
                 return device;
             })
         })
@@ -93,7 +93,6 @@ const readDb = () => {
 }
 
 const updateSatellites = deviceArr => {
-    console.log(deviceArr);
     if (!isProduction) return;
 
     deviceArr.forEach(device => {
@@ -201,30 +200,36 @@ io.sockets.on('connection', socket => {
         // console.log(data)
 
         // see if MAC address already exists
-        const macIdx = db.devices[deviceCategory].findIndex(d => d.id === macAddr)
+        try {
+			const macIdx = db.devices[deviceCategory].findIndex(d => d.id === macAddr)
+			console.log(`mac index: ${macIdx}`)
+	        if (macIdx < 0) {
+	            const temp = Object.assign({}, deviceTemplates[deviceType]);
+	            temp.id = macAddr;
+	            temp.name = satelliteName;
+	            temp.connected = true;
+	            db.devices[deviceCategory] = db.devices[deviceCategory].concat(temp);
+	        } else {
+	            db.devices[deviceCategory][macIdx].connected = true;
+	            console.log(db.devices[deviceCategory][macIdx])
 
-        if (macIdx < 0) {
-            const temp = Object.assign({}, deviceTemplates[deviceType]);
-            temp.id = macAddr;
-            temp.name = satelliteName;
-            temp.connected = true;
-            db.devices[deviceCategory] = db.devices[deviceCategory].concat(temp);
-        } else {
-            db.devices[deviceCategory][macIdx].connected = true;
 
-            // const light = db.lights[macIdx];
-            // updateRemote({
-            // 	lights: [light.id],
-            // 	rgb: light.rgb
-            // })
-            // io.sockets.emit('update-light-info', {
-            // 	light
-            // })
+	            // const light = db.lights[macIdx];
+	            // updateRemote({
+	            // 	lights: [light.id],
+	            // 	rgb: light.rgb
+	            // })
+	            // io.sockets.emit('update-light-info', {
+	            // 	light
+	            // })
+	        }
+
+	        updateSatellites([db.devices[deviceCategory][macIdx]]);
+	        // writeDb();
+	        sockets[macAddr] = socket;
+        } catch (err) {
+        	console.log(err)
         }
-
-        updateSatellites([db.devices[deviceCategory][macIdx]]);
-        // writeDb();
-        sockets[macAddr] = socket;
     })
 
     socket.on('disconnect', data => {

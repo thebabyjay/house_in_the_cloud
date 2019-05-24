@@ -6,7 +6,7 @@
                 "name": "MULTICOLOR",
                 "type": "LIGHT_MULTICOLOR",
                 "active": false,
-                "connected": true,
+                "connected": false,
                 "status": {
                     "red": 0,
                     "green": 0,
@@ -18,7 +18,7 @@
                 "name": "DIMMABLE",
                 "type": "LIGHT_UNICOLOR_DIMMABLE",
                 "active": false,
-                "connected": true,
+                "connected": false,
                 "status": 0
             },
             {
@@ -26,18 +26,31 @@
                 "name": "NONDIMMABLE",
                 "type": "LIGHT_UNICOLOR_NONDIMMABLE",
                 "active": false,
-                "connected": true,
+                "connected": false,
                 "status": 0
             },
             {
-                "id": "4c:cc:6a:d3:fd:dc",
-                "name": "Jason's Room 4ft",
+                "id": "b8:27:eb:01:6b:11",
+                "name": "Jason's Room 16ft",
+                "deviceType": "LIGHT_MULTICOLOR",
+                "deviceCategory": "lights",
+                "active": true,
+                "connected": true,
+                "status": {
+                    "red": "5",
+                    "green": 0,
+                    "blue": "11"
+                }
+            },
+            {
+                "id": "b8:27:eb:cc:13:9a",
+                "name": "Unicorn",
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
                 "active": false,
                 "connected": true,
                 "status": {
-                    "red": 0,
+                    "red": "6",
                     "green": 0,
                     "blue": 0
                 }
@@ -49,7 +62,7 @@
                 "name": "SWITCH",
                 "type": "SWITCH",
                 "active": false,
-                "connected": true,
+                "connected": false,
                 "status": 0
             }
         ]

@@ -1,4 +1,4 @@
-<template>
+ <template>
   <div class="wrapper">
     <div class="header">
       <div>
@@ -118,10 +118,11 @@
             :device='device' 
             :handlePowerSwitchClick='handlePowerSwitchClick'
             :selected='switchesActivated.find(sw => sw.id === device.id) ? true : false'
+            :class='{ "switch-disabled": !connectedDevices.find(l => l.id === device.id) }'
+            :disabled='!connectedDevices.find(l => l.id === device.id)'
           />
             <!-- :selected='switchesActivated.includes(device.id)' -->
-            <!-- :class='{ "switch-disabled": !connectedDevices.find(l => l.id === light.id) }' -->
-            <!-- :disabled='!connectedDevices.find(l => l.id === light.id)' -->
+            
         </v-layout>
       </v-container>
 
@@ -485,7 +486,6 @@ export default {
     // // EVENT HANDLERS
     handlePowerSwitchClick: function(device) {
       device.active = !device.active;
-      console.log(device)
       this.socket.emit('toggle-device', { device });
     },
     
@@ -514,9 +514,14 @@ export default {
         this.redSliderValue = 0;
         this.greenSliderValue = 0;
         this.blueSliderValue = 0;
-      } else {
+      } else { 
         const previousSelectedLight = this.selectedMultiColorLights[this.selectedMultiColorLights.length - 1];
-        const { red, green, blue } = previousSelectedLight;
+        console.log('previously selected light')
+        console.log(previousSelectedLight)
+        const { red, green, blue } = previousSelectedLight.status;
+        console.log(`red: ${red}`)
+        console.log(`green: ${green}`)
+        console.log(`blue: ${blue}`)
         this.redSliderValue = red;
         this.greenSliderValue = green;
         this.blueSliderValue = blue;
