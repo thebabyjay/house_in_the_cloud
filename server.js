@@ -72,8 +72,7 @@ const writeDb = () => {
  * @desc read database from file
  * @desc whenever the database is read in (usually on server startup), all devices should be set to 'disconnected'
  */
-const readDb = (socket, setDevicesAsDisconnected) => {
-    console.log('reading database');
+const readDb = (socket, setDevicesAsDisconnected = false) => {
     readJson('db.json', (err, data) => {
         Object.keys(data.devices).forEach(deviceType => {
             data.devices[deviceType] = data.devices[deviceType].map(device => {
@@ -83,7 +82,6 @@ const readDb = (socket, setDevicesAsDisconnected) => {
         })
         
         db = data;
-        console.log(db)
     })
 }
 
@@ -207,7 +205,6 @@ io.sockets.on('connection', socket => {
         // see if MAC address already exists
         try {
 			const macIdx = db.devices[deviceCategory].findIndex(d => d.id === macAddr)
-			console.log(`mac index: ${macIdx}`)
 	        if (macIdx < 0) {
 	            const temp = Object.assign({}, deviceTemplates[deviceType]);
 	            temp.id = macAddr;

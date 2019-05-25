@@ -6,7 +6,7 @@
       </div>
     </div>
     <div class='header-actions' v-if='showHeaderActions'>
-        <button class='header-action-btn' @click='() => rereadDb'>Read DB</button>
+        <button class='header-action-btn' @click='rereadDb'>Read DB</button>
         <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button> -->
         <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button> -->
     </div>
