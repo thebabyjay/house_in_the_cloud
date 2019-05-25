@@ -52,17 +52,37 @@ const OFF = 0;
 /**
  *  FUNCTIONS  
  * 
+ * @func turnDeviceOff                          turns off all given GPIOs
  * @func handleSwitchChange                     for smart switches
  * @func handleLightUniColorNondimmableChange   for regular lights (on and off)
  * @func handleLightMultiColorChange            for RGB lights
  * @func handleLightUniColorDimmableChange      for single color lights that can use PWM
  */
+
+ const turnDeviceOff = () => {
+    switch (config.deviceType) {
+        case deviceTypes.LIGHT_MULTICOLOR:
+            ledRed.analogWrite(OFF);
+            ledGreen.analogWrite(OFF);
+            ledBlue.analogWrite(OFF);
+            break;
+        case deviceTypes.LIGHT_UNICOLOR_DIMMABLE:
+        case deviceTypes.LIGHT_UNICOLOR_NONDIMMABLE:
+            ledWhite.analogWrite(OFF);
+            break;
+        case deviceTypes.SWITCH:
+            switchPin.analogWrite(OFF);
+            break;
+        default:
+            break;
+ }
+
 const handleSwitchChange = (device) => {
     const { status, active } = device;
 
     try {
         if (!active) {
-            return switchPin.analogWrite(OFF)
+            return turnDeviceOff();
         }
         switchPin.analogWrite(status);
     } catch (err) {
@@ -75,7 +95,7 @@ const handleLightUniColorNondimmableChange = (device) => {
 
     try {
         if (!active) {
-            return switchPin.analogWrite(OFF);
+            return turnDeviceOff();
         }
         switchPin.analogWrite(ON);
     } catch (err) {
@@ -89,10 +109,7 @@ const handleLightUniColorNondimmableChange = (device) => {
 const handleLightMultiColorChange = (device) => {
     try {
         if (!device.active) {
-            ledRed.analogWrite(0);
-            ledGreen.analogWrite(0);
-            ledBlue.analogWrite(0);    
-            return;
+            return turnDeviceOff();
         }
         const { red, green, blue } = device.status;
         ledRed.pwmWrite(red);
@@ -108,7 +125,7 @@ const handleLightUniColorDimmableChange = (device) => {
 
     try {
         if (!active) {
-            return ledWhite.pwmWrite(OFF);
+            return turnDeviceOff();
         }
         ledWhite.pwmWrite(status);
     } catch (err) {
