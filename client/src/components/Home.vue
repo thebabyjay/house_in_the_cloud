@@ -422,6 +422,7 @@ export default {
     updateMultiColorLights: function() {
       this.selectedMultiColorLights = this.selectedMultiColorLights.map(mcl => {
         const { redSliderValue, greenSliderValue, blueSliderValue } = this;
+        mcl.active = true;
         mcl.status = {
           red: redSliderValue,
           green: greenSliderValue,
