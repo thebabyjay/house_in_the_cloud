@@ -528,12 +528,7 @@ export default {
         this.blueSliderValue = 0;
       } else { 
         const previousSelectedLight = this.selectedMultiColorLights[this.selectedMultiColorLights.length - 1];
-        console.log('previously selected light')
-        console.log(previousSelectedLight)
         const { red, green, blue } = previousSelectedLight.status;
-        console.log(`red: ${red}`)
-        console.log(`green: ${green}`)
-        console.log(`blue: ${blue}`)
         this.redSliderValue = red;
         this.greenSliderValue = green;
         this.blueSliderValue = blue;
