@@ -91,9 +91,6 @@ const updateSatellites = deviceArr => {
 
     
     deviceArr.forEach(device => {
-        console.log(sockets)
-        console.log(`device id: ${device.id}`)
-        console.log('\n\n\n')
         if (sockets[device.id]) {
             sockets[device.id].emit('update-satellite', { device })
         }
@@ -220,8 +217,8 @@ io.sockets.on('connection', socket => {
 	            db.devices[deviceCategory][macIdx].connected = true;
 	        }
 
-	        updateSatellites([db.devices[deviceCategory][macIdx]]);
 	        sockets[macAddr] = socket;
+	        updateSatellites([db.devices[deviceCategory][macIdx]]);
         } catch (err) {
         	console.log(err)
         }

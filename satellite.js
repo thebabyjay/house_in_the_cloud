@@ -194,8 +194,6 @@ socket.on('satellite-init', data => {
 socket.on('update-satellite', function(data) {
     const { device } = data;
     const { id: mac } = device;
-    console.log(mac)
-    console.log(device)
     if (mac === macAddr) {
         updateDevice(device);
     }
