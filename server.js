@@ -72,23 +72,16 @@ const writeDb = () => {
  * @desc read database from file
  * @desc whenever the database is read in (usually on server startup), all devices should be set to 'disconnected'
  */
-const readDb = () => {
+const readDb = (socket, setDevicesAsDisconnected) => {
     readJson('db.json', (err, data) => {
         Object.keys(data.devices).forEach(deviceType => {
             data.devices[deviceType] = data.devices[deviceType].map(device => {
-                device.connected = false;
+                device.connected = setDevicesAsDisconnected ? false : device.connected;
                 return device;
             })
         })
         
         db = data;
-        // const connected = db.lights.filter(l => l.connected);
-        // connected.map(l => {
-        //     updateRemote({
-        //         lights: [l.id],
-        //         rgb: l.rgb
-        //     })
-        // })
     })
 }
 
@@ -123,6 +116,7 @@ const toggleDevice = data => {
             break;
     }
     updateSatellites([device])
+    writeDb();
     emitBrowserInit();
 }
 
@@ -180,7 +174,7 @@ const emitBrowserInit = () => {
  * @event toggle-device
  * @event delete-device
  * 
- * @event reread-database
+ * @event read-database
  * 
  * -- OUTGOING
  * @event browser-init
@@ -223,7 +217,6 @@ io.sockets.on('connection', socket => {
 	        }
 
 	        updateSatellites([db.devices[deviceCategory][macIdx]]);
-	        // writeDb();
 	        sockets[macAddr] = socket;
         } catch (err) {
         	console.log(err)
@@ -244,6 +237,7 @@ io.sockets.on('connection', socket => {
 
     socket.on('update-devices', updateDevices);
     socket.on('toggle-device', toggleDevice);
+    socket.on('read-db', readDb);
     
 })
 
@@ -252,7 +246,7 @@ io.sockets.on('connection', socket => {
 /**
  * STARTUP FUNCTIONS
  */
-readDb();
+readDb(null, true);
 
 // start the main server 
 http.listen(PORT, () => {

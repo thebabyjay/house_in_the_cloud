@@ -2,14 +2,16 @@
   <div class="wrapper">
     <div class="header">
       <div>
-        <h1>House in the Cloud</h1>
-      </div>
-      <div>
-        <!-- <button class='header-action-btn' @click='() => rereadDb'>Read DB</button>
-        <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button>
-        <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button> -->
+        <h1 @click='toggleHeaderActionBar'>House in the Cloud</h1>
       </div>
     </div>
+    <div class='header-actions' v-if='showHeaderActions'>
+        <button class='header-action-btn' @click='() => rereadDb'>Read DB</button>
+        <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button> -->
+        <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button> -->
+    </div>
+
+    <div class='spacer-50' />
 
     <!-- <div v-if='showEditPanel' style='border-bottom: 1px solid white; margin-bottom: 25px;padding-bottom: 25px;'>
       <h3 style='margin-bottom: 15px;'>Mode:Edit</h3>
@@ -215,6 +217,7 @@ export default {
       db: {},
 
       selectedMultiColorLights: [],
+      showHeaderActions: false,
       // lights: [],
       // scenes: [],
       // groups: [],
@@ -423,6 +426,14 @@ export default {
       this.updateMultiColorLights();
     },
 
+    toggleHeaderActionBar: function() {
+      this.showHeaderActions = !this.showHeaderActions;
+    },
+
+    rereadDb: function() {
+      this.socket.emit('read-db');
+    },
+
     // deleteLight: function(id) {
     //   this.socket.emit('delete-light', {
     //     id
@@ -567,9 +578,16 @@ export default {
   align-items: center;
   border-bottom: 1px solid white;
   padding: 10px;
-  margin-bottom: 50px;
 }
 
+.header-actions {
+  margin-top: 10px;
+}
+
+.spacer-50 {
+  margin-bottom: 50px;
+}
+  
 .header-action-btn{
   margin: 5px;
   border: 1px solid #fafafa;
