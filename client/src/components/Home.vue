@@ -315,24 +315,24 @@ export default {
     // blueSliderValue: function(val) {
     //   this.updateMultiColorLights();
     // },
-    brightnessSliderValue: function(val) {
-    	console.log(val / (this.redSliderValue / 255))
-      this.redSliderValue = Math.floor((this.redSliderValue / 255) * val);
-      this.greenSliderValue = Math.floor((this.greenSliderValue / 255) * val);
-      this.blueSliderValue = Math.floor((this.blueSliderValue / 255) * val);
-      this.runLights();
-    },
+    // brightnessSliderValue: function(val) {
+    // 	console.log(val / (this.redSliderValue / 255))
+    //   this.redSliderValue = Math.floor((this.redSliderValue / 255) * val);
+    //   this.greenSliderValue = Math.floor((this.greenSliderValue / 255) * val);
+    //   this.blueSliderValue = Math.floor((this.blueSliderValue / 255) * val);
+    //   this.runLights();
+    // },
 
     // update the lights for the 'create a scene' object
-    'createSceneObj.rSliderVal': function(redVal) {
-      this.updateNewSceneLights();
-    },
-    'createSceneObj.gSliderVal': function(greenVal) {
-      this.updateNewSceneLights();
-    },
-    'createSceneObj.bSliderVal': function(blueVal) {
-      this.updateNewSceneLights();
-    },
+    // 'createSceneObj.rSliderVal': function(redVal) {
+    //   this.updateNewSceneLights();
+    // },
+    // 'createSceneObj.gSliderVal': function(greenVal) {
+    //   this.updateNewSceneLights();
+    // },
+    // 'createSceneObj.bSliderVal': function(blueVal) {
+    //   this.updateNewSceneLights();
+    // },
   },
 
   mounted() {
@@ -408,6 +408,7 @@ export default {
         }
         return mcl;
       })
+      console.log(this.selectedMultiColorLights);
 
       this.socket.emit('update-devices', { devices: this.selectedMultiColorLights });
     },

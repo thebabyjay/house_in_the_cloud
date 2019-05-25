@@ -127,6 +127,7 @@ const toggleDevice = data => {
 }
 
 const updateDevices = ({ devices }) => {
+    console.log(devices)
     if (!devices.length) return;
 
     devices.forEach(device => {
