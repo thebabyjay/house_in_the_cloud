@@ -91,9 +91,6 @@ const updateSatellites = deviceArr => {
 
     
     deviceArr.forEach(device => {
-        console.log(deviceArr)
-        console.log(deviceArr.length)
-        console.log(device)
         if (sockets[device.id]) {
             sockets[device.id].emit('update-satellite', { device })
         }
