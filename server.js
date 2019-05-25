@@ -89,6 +89,9 @@ const readDb = (socket, setDevicesAsDisconnected = false) => {
 const updateSatellites = deviceArr => {
     if (!isProduction) return;
 
+    console.log(deviceArr)
+    console.log(device)
+    
     deviceArr.forEach(device => {
         if (sockets[device.id]) {
             sockets[device.id].emit('update-satellite', { device })
