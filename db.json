@@ -2,40 +2,12 @@
     "devices": {
         "lights": [
             {
-                "id": 1,
-                "name": "MULTICOLOR",
-                "type": "LIGHT_MULTICOLOR",
-                "active": false,
-                "connected": false,
-                "status": {
-                    "red": 0,
-                    "green": 0,
-                    "blue": 0
-                }
-            },
-            {
-                "id": 2,
-                "name": "DIMMABLE",
-                "type": "LIGHT_UNICOLOR_DIMMABLE",
-                "active": false,
-                "connected": false,
-                "status": 0
-            },
-            {
-                "id": 3,
-                "name": "NONDIMMABLE",
-                "type": "LIGHT_UNICOLOR_NONDIMMABLE",
-                "active": false,
-                "connected": false,
-                "status": 0
-            },
-            {
                 "id": "b8:27:eb:01:6b:11",
                 "name": "Jason's Room 16ft",
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
                 "active": true,
-                "connected": true,
+                "connected": false,
                 "status": {
                     "red": "5",
                     "green": 0,
@@ -48,7 +20,7 @@
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
                 "active": false,
-                "connected": true,
+                "connected": false,
                 "status": {
                     "red": "6",
                     "green": 0,
@@ -56,16 +28,7 @@
                 }
             }
         ],
-        "switches": [
-            {
-                "id": 4,
-                "name": "SWITCH",
-                "type": "SWITCH",
-                "active": false,
-                "connected": false,
-                "status": 0
-            }
-        ]
+        "switches": []
     },
     "scenes": [],
     "groups": []

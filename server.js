@@ -4,7 +4,7 @@ const io            = require('socket.io')(http)
 const cors          = require('cors');
 const deviceTypes   = require('./device/types')
 const deviceCategories = require('./device/categories');
-const deviceTemplates = require('./templates/templates');
+const deviceTemplates = require('./device/templates');
 
 const isProduction = process.argv[2] === 'production';
 const PORT = 3000;
@@ -183,6 +183,15 @@ const emitBrowserInit = () => {
  * @event reread-database
  * 
  * -- OUTGOING
+ * @event browser-init
+ * @param devices { lights, switches}
+ * @param scenes
+ * @param groups
+ * 
+ * @event update-satellite
+ * @param device { id, status, ative }
+ * 
+ * 
  */
 io.sockets.on('connection', socket => {
     let clientType = 'browser'; // browser or satellite
@@ -211,17 +220,6 @@ io.sockets.on('connection', socket => {
 	            db.devices[deviceCategory] = db.devices[deviceCategory].concat(temp);
 	        } else {
 	            db.devices[deviceCategory][macIdx].connected = true;
-	            console.log(db.devices[deviceCategory][macIdx])
-
-
-	            // const light = db.lights[macIdx];
-	            // updateRemote({
-	            // 	lights: [light.id],
-	            // 	rgb: light.rgb
-	            // })
-	            // io.sockets.emit('update-light-info', {
-	            // 	light
-	            // })
 	        }
 
 	        updateSatellites([db.devices[deviceCategory][macIdx]]);

@@ -44,23 +44,47 @@ switch (config.deviceType) {
 VARIABLES
 */
 // var port = 8080;
-var on = 1;
-var off = 0;
+const ON = 1;
+const OFF = 0;
 
 
 
-/*
-    FUNCTIONS   
-*/
-const turnDeviceOff = () => {
-    // ledRed.digitalWrite(off); // Turn RED LED off
-    // ledGreen.digitalWrite(off); // Turn GREEN LED off
-    // ledBlue.digitalWrite(off); // Turn BLUE LED off
-}
-
+/**
+ *  FUNCTIONS  
+ * 
+ * @func handleSwitchChange                     for smart switches
+ * @func handleLightUniColorNondimmableChange   for regular lights (on and off)
+ * @func handleLightMultiColorChange            for RGB lights
+ * @func handleLightUniColorDimmableChange      for single color lights that can use PWM
+ */
 const handleSwitchChange = (device) => {
+    const { status, active } = device;
 
+    try {
+        if (!active) {
+            return switchPin.analogWrite(OFF)
+        }
+        switchPin.analogWrite(status);
+    } catch (err) {
+        console.log(err)
+    }
 }
+
+const handleLightUniColorNondimmableChange = (device) => {
+    const { status, active } = device;
+
+    try {
+        if (!active) {
+            return switchPin.analogWrite(OFF);
+        }
+        switchPin.analogWrite(ON);
+    } catch (err) {
+        console.log(err)
+    }
+    
+    ledWhite.analogWrite(status);
+}
+
 
 const handleLightMultiColorChange = (device) => {
     try {
@@ -80,14 +104,19 @@ const handleLightMultiColorChange = (device) => {
 }
 
 const handleLightUniColorDimmableChange = (device) => {
-    const { status } = device;
-    ledWhite.pwmWrite(status);
+    const { status, active } = device;
+
+    try {
+        if (!active) {
+            return ledWhite.pwmWrite(OFF);
+        }
+        ledWhite.pwmWrite(status);
+    } catch (err) {
+        console.log(err)
+    }
+    
 }
 
-const handleLightUniColorNondimmableChange = (device) => {
-    const { status } = device;
-    ledWhite.analogWrite(status);
-}
 
 
 

@@ -1,5 +1,5 @@
-const deviceTypes = require('../device_types');
-const deviceCategories = require('../device_categories');
+const deviceTypes = require('./device/types');
+const deviceCategories = require('./device/categories');
 
 module.exports = {
 	satelliteName: `Jason's Room 4ft`,

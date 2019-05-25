@@ -139,7 +139,7 @@
           />
         </v-layout>
         <div style='margin-top: 25px'>
-          <button class='set-selected-lights-btn'>
+          <button class='set-selected-lights-btn' @click='setSelectedLightsToCurrentColor'>
             Set selected lights to this color
           </button>
         </div>
@@ -151,7 +151,7 @@
             {{ redSliderValue }}
           </v-flex>	
           <v-flex xs11>
-            <input type="range" min="0" max="255" v-model='redSliderValue' class="slider" id="redSlider">
+            <input @input='evt => rgbSliderOnChange("red", evt.target.value)' type="range" min="0" max="255" :value='redSliderValue' class="slider" id="redSlider">
           </v-flex>
         </v-layout>
         <v-layout row justify-center align-center>
@@ -159,7 +159,7 @@
             {{ greenSliderValue }}
           </v-flex>	
           <v-flex xs11>
-            <input type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
+            <input @input='evt => rgbSliderOnChange("green", evt.target.value)' type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
           </v-flex>
         </v-layout>
         <v-layout row justify-center align-center>
@@ -167,7 +167,7 @@
             {{ blueSliderValue }}
           </v-flex>	
           <v-flex xs11>
-            <input type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
+            <input @input='evt => rgbSliderOnChange("blue", evt.target.value)' type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
           </v-flex>
         </v-layout>
         <!-- <v-layout row justify-center align-center>
@@ -305,15 +305,16 @@ export default {
   },
 
   watch: {
-    redSliderValue: function(val) {
-      this.updateMultiColorLights();
-    },
-    greenSliderValue: function(val) {
-      this.updateMultiColorLights();
-    },
-    blueSliderValue: function(val) {
-      this.updateMultiColorLights();
-    },
+    // redSliderValue: function(val) {
+    //   this.updateMultiColorLights();
+    //   console.log('hello')
+    // },
+    // greenSliderValue: function(val) {
+    //   this.updateMultiColorLights();
+    // },
+    // blueSliderValue: function(val) {
+    //   this.updateMultiColorLights();
+    // },
     brightnessSliderValue: function(val) {
     	console.log(val / (this.redSliderValue / 255))
       this.redSliderValue = Math.floor((this.redSliderValue / 255) * val);
@@ -409,6 +410,17 @@ export default {
       })
 
       this.socket.emit('update-devices', { devices: this.selectedMultiColorLights });
+    },
+
+    rgbSliderOnChange: function(color, value) {
+      if (color === 'red') return this.redSliderValue = value;
+      if (color === 'green') return this.greenSliderValue = value;
+      if (color === 'blue') return this.blueSliderValue = value;
+      this.updateMultiColorLights();
+    },
+
+    setSelectedLightsToCurrentColor: function() {
+      this.updateMultiColorLights();
     },
 
     // deleteLight: function(id) {
