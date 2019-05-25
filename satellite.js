@@ -75,6 +75,7 @@ const OFF = 0;
             break;
         default:
             break;
+    }
  }
 
 const handleSwitchChange = (device) => {
