@@ -408,15 +408,14 @@ export default {
         }
         return mcl;
       })
-      console.log(this.selectedMultiColorLights);
 
       this.socket.emit('update-devices', { devices: this.selectedMultiColorLights });
     },
 
     rgbSliderOnChange: function(color, value) {
-      if (color === 'red') return this.redSliderValue = value;
-      if (color === 'green') return this.greenSliderValue = value;
-      if (color === 'blue') return this.blueSliderValue = value;
+      if (color === 'red') this.redSliderValue = value;
+      if (color === 'green') this.greenSliderValue = value;
+      if (color === 'blue') this.blueSliderValue = value;
       this.updateMultiColorLights();
     },
 
