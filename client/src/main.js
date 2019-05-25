@@ -11,3 +11,9 @@ Vue.use(Vuetify);
 new Vue({
   render: h => h(App),
 }).$mount('#app');
+
+// stops double touch zooming on mobile devices
+document.ontouchend = (evt) => {
+  evt.preventDefault();
+  evt.target.click();
+};

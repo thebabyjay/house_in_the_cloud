@@ -82,6 +82,7 @@ const readDb = (socket, setDevicesAsDisconnected = false) => {
         })
         
         db = data;
+        emitBrowserInit();
     })
 }
 

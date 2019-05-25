@@ -6,7 +6,7 @@
       </div>
     </div>
     <div class='header-actions' v-if='showHeaderActions'>
-        <button class='header-action-btn' @click='rereadDb'>Read DB</button>
+        <button class='header-action-btn' @click='readDb'>Read DB</button>
         <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button> -->
         <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button> -->
     </div>
@@ -152,24 +152,42 @@
           <v-flex xs1>
             {{ redSliderValue }}
           </v-flex>	
-          <v-flex xs11>
-            <input @input='evt => rgbSliderOnChange("red", evt.target.value)' type="range" min="0" max="255" :value='redSliderValue' class="slider" id="redSlider">
+          <v-flex xs11 class='slider-row'>
+            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('red', redSliderValue - 1)">
+              <v-icon>keyboard_arrow_left</v-icon>
+            </button>
+            <input @input='evt => rgbSliderOnChange("red", parseInt(evt.target.value))' type="range" min="0" max="255" :value='redSliderValue' class="slider" id="redSlider">
+            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('red', redSliderValue + 1)">
+              <v-icon>keyboard_arrow_right</v-icon>
+            </button>
           </v-flex>
         </v-layout>
         <v-layout row justify-center align-center>
           <v-flex xs1>
             {{ greenSliderValue }}
           </v-flex>	
-          <v-flex xs11>
-            <input @input='evt => rgbSliderOnChange("green", evt.target.value)' type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
+          <v-flex xs11 class='slider-row'>
+            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('green', greenSliderValue - 1)">
+              <v-icon>keyboard_arrow_left</v-icon>
+            </button>
+            <input @input='evt => rgbSliderOnChange("green", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
+            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('green', greenSliderValue + 1)">
+              <v-icon>keyboard_arrow_right</v-icon>
+            </button>
           </v-flex>
         </v-layout>
         <v-layout row justify-center align-center>
           <v-flex xs1>
             {{ blueSliderValue }}
           </v-flex>	
-          <v-flex xs11>
-            <input @input='evt => rgbSliderOnChange("blue", evt.target.value)' type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
+          <v-flex xs11 class='slider-row'>
+            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('blue', blueSliderValue - 1)">
+              <v-icon>keyboard_arrow_left</v-icon>
+            </button>
+            <input @input='evt => rgbSliderOnChange("blue", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
+            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('blue', blueSliderValue + 1)">
+              <v-icon>keyboard_arrow_right</v-icon>
+            </button>
           </v-flex>
         </v-layout>
         <!-- <v-layout row justify-center align-center>
@@ -416,6 +434,8 @@ export default {
     },
 
     rgbSliderOnChange: function(color, value) {
+      if (value < 0 || value > 255) return;
+
       if (color === 'red') this.redSliderValue = value;
       if (color === 'green') this.greenSliderValue = value;
       if (color === 'blue') this.blueSliderValue = value;
@@ -430,7 +450,7 @@ export default {
       this.showHeaderActions = !this.showHeaderActions;
     },
 
-    rereadDb: function() {
+    readDb: function() {
       this.socket.emit('read-db');
     },
 
@@ -772,5 +792,21 @@ export default {
   #blueSlider::-moz-range-thumb {background: blue;}
   #brightnessSlider::-webkit-slider-thumb {background: rgb(255, 255, 108);}
   #brightnessSlider::-moz-range-thumb {background: rgb(255, 255, 108);}
+
+  .slider-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .slider-value-change-btn {
+    background: rgba(0,0,0,0.2);
+    margin: 10px;
+    padding: 5px;
+    border-radius: 4px;
+  }
+  .slider-value-change-btn i { 
+    color: white;
+  }
 
 </style>
