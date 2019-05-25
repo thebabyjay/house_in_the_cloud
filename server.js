@@ -73,6 +73,7 @@ const writeDb = () => {
  * @desc whenever the database is read in (usually on server startup), all devices should be set to 'disconnected'
  */
 const readDb = (socket, setDevicesAsDisconnected) => {
+    console.log('reading database');
     readJson('db.json', (err, data) => {
         Object.keys(data.devices).forEach(deviceType => {
             data.devices[deviceType] = data.devices[deviceType].map(device => {
@@ -82,6 +83,7 @@ const readDb = (socket, setDevicesAsDisconnected) => {
         })
         
         db = data;
+        console.log(db)
     })
 }
 
