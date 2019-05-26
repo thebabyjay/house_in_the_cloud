@@ -137,7 +137,7 @@ const updateDevices = ({ devices }) => {
 
         // set the active flag for each affected device
         device.active = true;
-        
+
         switch(deviceType) {
             case deviceTypes.LIGHT_MULTICOLOR:
             case deviceTypes.LIGHT_UNICOLOR_DIMMABLE:

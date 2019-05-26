@@ -109,7 +109,11 @@
       </form>
     </div> -->
 
-    <div v-if='!showCreatePanel && !showEditPanel'>
+    <div v-if='showCreateSceneModal' class='modal'>
+
+    </div>  
+
+    <div>
       <h1>Devices</h1>
       <all-devices 
       :devices='devices'
