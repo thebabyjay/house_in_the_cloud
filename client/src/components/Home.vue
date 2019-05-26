@@ -572,6 +572,7 @@ export default {
     },
     
     handleSceneClick: function(id) {
+      console.log(`selected scene id: ${id}`)
       this.socket.emit('run-scene', { id });
     },
 
