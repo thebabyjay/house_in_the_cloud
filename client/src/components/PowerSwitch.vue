@@ -2,16 +2,18 @@
     <!-- <div class='flex-centered'> -->
     <v-flex xs6 sm4 md2 algin-self-center>
         <div 
-            class="light-button flex-centered" 
-            :class="[selected ? 'light-active' : 'light-inactive']"
-            @click='() => handlePowerSwitchClick(device)'
+        class="light-button flex-centered" 
+        :class="[selected ? 'light-active' : 'light-inactive']"
+        @click='() => handlePowerSwitchClick(device)'
         >
             <span>{{ device.name }}</span>
-            <label v-if='!disabled' class='switch'>
-                <input type="checkbox" :checked='selected' @click='() => handlePowerSwitchClick(device)'>
-                <span class="slider round"></span>
-            </label>
-            <div v-if='disabled' style='margin-top: 20px; color: rgba(255,100,100,0.8);'>Device not connected</div>
+            <div v-if='showSwitch'>
+                <label v-if='!disabled' class='switch'>
+                    <input type="checkbox" :checked='selected' @click='() => handlePowerSwitchClick(device)'>
+                    <span class="slider round"></span>
+                </label>
+                <div v-if='disabled' style='margin-top: 20px; color: rgba(255,100,100,0.8);'>Device not connected</div>
+            </div>
         </div>
     </v-flex>
     <!-- </div> -->
@@ -28,7 +30,8 @@ export default {
         disabled: {
             type: Boolean,
             default: false
-        }
+        },
+        showSwitch: { type: Boolean, default: false },
     },   
 }
 </script>

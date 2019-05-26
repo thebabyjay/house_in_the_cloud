@@ -202,6 +202,40 @@ const runScene = (info) => {
     updateDevices(scene);
 }
 
+/**
+ * @desc delete an existing scene
+ */
+deleteScene = ({ scene }) => {
+    if (!scene) {
+        return console.log('scene does not exist')
+    }
+
+    db.scenes = db.scenes.filter(s => s.id !== scene.id);
+    writeDb();
+    emitBrowserInit();
+}
+
+/**
+ * @desc updates the details of a scene or adds a new scene if it does not exist
+ */
+const addOrUpdateScene = ({ scene }) => {
+    if (!scene) {
+        return console.log('no scene given in addOrUpdateScene');
+    }
+
+    // check if the scene has an ID and if it exists in the database
+    const { id } = scene;
+    if (!id || !db.scenes.find(s => s.id === id)) {
+        // find a new id
+        const newId = db.scenes.reduce((acc, cur) => acc > cur.id ? acc : cur.id, 0);
+        scene.id = newId;
+        return;
+    }
+
+    // if it exists, just update it
+    const sceneIdx = db.scenes.findIndex(s => s.id === id);
+    db.scenes[sceneIdx] = scene;
+}
 
 
 
@@ -294,7 +328,11 @@ io.sockets.on('connection', socket => {
     socket.on('update-devices', updateDevices);
     socket.on('toggle-device', toggleDevice);
     socket.on('read-db', readDb);
+    
+    // SCENES
     socket.on('run-scene', runScene);
+    socket.on('delete-scene', deleteScene);
+    socket.on('update-scene', addOrUpdateScene);
     
 })
 

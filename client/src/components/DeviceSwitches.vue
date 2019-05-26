@@ -22,7 +22,7 @@
 import PowerSwitch from './PowerSwitch';
 
 export default {
-    name: 'AllDevices',
+    name: 'DeviceSwitches',
     components: {
         PowerSwitch
     },
