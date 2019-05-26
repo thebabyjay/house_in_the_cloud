@@ -166,8 +166,7 @@ const runScene = (info) => {
     if (!scene) {
         return console.log('scene not found')
     }
-    update
-    console.log(scene.devices)
+    updateDevices(scene.devices);
 }
 
 
