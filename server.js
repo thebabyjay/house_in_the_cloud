@@ -84,7 +84,8 @@ const readDb = (socket, setDevicesAsDisconnected = false) => {
 const updateSatellites = deviceArr => {
     if (!isProduction) return;
 
-    
+    console.log('updating')
+        
     deviceArr.forEach(device => {
         sockets[device.id] && sockets[device.id].emit('update-satellite', { device })
     })    
@@ -130,6 +131,7 @@ const toggleDevice = data => {
 const updateDevices = ({ devices }) => {
     if (!devices.length) return;
 
+    console.log(`# of devices affected: ${devices.length}`)
     devices.forEach(device => {
         const { deviceType } = device;
         let idx;
@@ -166,6 +168,7 @@ const runScene = (info) => {
     if (!scene) {
         return console.log('scene not found')
     }
+    console.log('run scene')
     updateDevices(scene);
 }
 
