@@ -84,10 +84,10 @@ const readDb = (socket, setDevicesAsDisconnected = false) => {
 const updateSatellites = deviceArr => {
     if (!isProduction) return;
 
-    console.log('updating')
-        
     deviceArr.forEach(device => {
-        sockets[device.id] && sockets[device.id].emit('update-satellite', { device })
+        if (sockets[device.id]) {
+            sockets[device.id].emit('update-satellite', { device })
+        }
     })    
 
     // send new info to all connected clients
@@ -131,7 +131,6 @@ const toggleDevice = data => {
 const updateDevices = ({ devices }) => {
     if (!devices.length) return;
 
-    console.log(`# of devices affected: ${devices.length}`)
     devices.forEach(device => {
         const { deviceType } = device;
         let idx;
@@ -165,10 +164,36 @@ const runScene = (info) => {
     const { id: sceneId } = info;
     const scene = db.scenes.find(s => s.id === sceneId)
 
+    // get out if a scene does not exist
     if (!scene) {
         return console.log('scene not found')
     }
-    console.log('run scene')
+
+    // get the full object for each device in a scene
+    const allDeviceList = Object.keys(db.devices).reduce((acc, deviceCat) => acc.concat(db.devices[deviceCat]), []);
+    scene.devices = scene.devices.map(d => {
+        const device = allDeviceList.find(dev => dev.id === d.id);
+
+        if (!device) return;
+
+        switch(device.deviceType) {
+            case deviceTypes.LIGHT_MULTICOLOR:
+            case deviceTypes.LIGHT_UNICOLOR_DIMMABLE:
+            case deviceTypes.LIGHT_UNICOLOR_NONDIMMABLE:
+                // device = db.devices.lights.find(l => l.id === d.id);
+                device.status = d.status;
+                break;
+            case deviceTypes.SWITCH:
+                // device = db.devices.switches.find(s => s.id === d.id);
+                device.status = d.status;
+                break;
+            default:
+                break;
+        }
+        // console.log(device)
+        return device;
+    })
+
     updateDevices(scene);
 }
 

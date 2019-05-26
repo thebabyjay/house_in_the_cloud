@@ -7,11 +7,11 @@
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
                 "active": true,
-                "connected": false,
+                "connected": true,
                 "status": {
-                    "red": "5",
-                    "green": 0,
-                    "blue": "11"
+                    "red": "0",
+                    "green": "0",
+                    "blue": "18"
                 }
             },
             {
@@ -19,12 +19,12 @@
                 "name": "Unicorn",
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
-                "active": false,
-                "connected": false,
+                "active": true,
+                "connected": true,
                 "status": {
-                    "red": "6",
-                    "green": 0,
-                    "blue": 0
+                    "red": "0",
+                    "green": "0",
+                    "blue": "18"
                 }
             }
         ],
@@ -32,19 +32,24 @@
     },
     "scenes": [
         {
-    		"id": "scene_1",
-    		"name": "Bonne Nuit",
-    		"devices": [
-    			{
-	                "id": "b8:27:eb:01:6b:11",
-    				"status": {
-	                    "red": 0,
-	                    "green": 76,
-	                    "blue": 127
-	            	}
-    			}
-    		]
-    	}
+            "id": "scene_1",
+            "name": "Bonne Nuit",
+            "devices": [
+                {
+                    "id": "b8:27:eb:01:6b:11",
+                    "name": "Jason's Room 16ft",
+                    "deviceType": "LIGHT_MULTICOLOR",
+                    "deviceCategory": "lights",
+                    "active": true,
+                    "connected": true,
+                    "status": {
+                        "red": "0",
+                        "green": "0",
+                        "blue": "18"
+                    }
+                }
+            ]
+        }
     ],
     "groups": []
 }
