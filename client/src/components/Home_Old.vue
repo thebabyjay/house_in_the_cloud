@@ -1,15 +1,17 @@
-<template>
+ <template>
   <div class="wrapper">
     <div class="header">
       <div>
-        <h1>House in the Cloud</h1>
-      </div>
-      <div>
-        <!-- <button class='header-action-btn' @click='() => rereadDb'>Read DB</button>
-        <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button>
-        <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button> -->
+        <h1 @click='toggleHeaderActionBar'>House in the Cloud</h1>
       </div>
     </div>
+    <div class='header-actions' v-if='showHeaderActions'>
+        <button class='header-action-btn' @click='readDb'>Read DB</button>
+        <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button> -->
+        <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button> -->
+    </div>
+
+    <div class='spacer-50' />
 
     <!-- <div v-if='showEditPanel' style='border-bottom: 1px solid white; margin-bottom: 25px;padding-bottom: 25px;'>
       <h3 style='margin-bottom: 15px;'>Mode:Edit</h3>
@@ -118,10 +120,11 @@
             :device='device' 
             :handlePowerSwitchClick='handlePowerSwitchClick'
             :selected='switchesActivated.find(sw => sw.id === device.id) ? true : false'
+            :class='{ "switch-disabled": !connectedDevices.find(l => l.id === device.id) }'
+            :disabled='!connectedDevices.find(l => l.id === device.id)'
           />
             <!-- :selected='switchesActivated.includes(device.id)' -->
-            <!-- :class='{ "switch-disabled": !connectedDevices.find(l => l.id === light.id) }' -->
-            <!-- :disabled='!connectedDevices.find(l => l.id === light.id)' -->
+            
         </v-layout>
       </v-container>
 
@@ -129,17 +132,16 @@
       <h1 style='margin-top: 30px;'>Custom Lighting</h1>
       <v-container>
         <v-layout row wrap justify-center>
-          <!-- <light-color
-            v-for='light in connectedLights' 
-            
-            :key='`light_color_${light.id}`' 
-            :light='light' 
-            :selected='selectedLights.includes(light.id)'
-            :handleLightClick='handleLightColorClick'
-          /> -->
+          <multi-color-light-checkbox
+            v-for='mcLight in connectedMultiColorLights' 
+            :key='`light_color_${mcLight.id}`' 
+            :light='mcLight' 
+            :selected='selectedMultiColorLights.find(l => l.id === mcLight.id) ? true : false'
+            :handleLightClick='handleMultiColorLightCheckboxClick'
+          />
         </v-layout>
         <div style='margin-top: 25px'>
-          <button class='set-selected-lights-btn'>
+          <button class='set-selected-lights-btn' @click='setSelectedLightsToCurrentColor'>
             Set selected lights to this color
           </button>
         </div>
@@ -150,24 +152,42 @@
           <v-flex xs1>
             {{ redSliderValue }}
           </v-flex>	
-          <v-flex xs11>
-            <input type="range" min="0" max="255" v-model='redSliderValue' class="slider" id="redSlider">
+          <v-flex xs11 class='slider-row'>
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('red', redSliderValue - 1)">
+              <v-icon>keyboard_arrow_left</v-icon>
+            </button>
+            <input @input='evt => handleRgbSliderChange("red", parseInt(evt.target.value))' type="range" min="0" max="255" :value='redSliderValue' class="slider" id="redSlider">
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('red', redSliderValue + 1)">
+              <v-icon>keyboard_arrow_right</v-icon>
+            </button>
           </v-flex>
         </v-layout>
         <v-layout row justify-center align-center>
           <v-flex xs1>
             {{ greenSliderValue }}
           </v-flex>	
-          <v-flex xs11>
-            <input type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
+          <v-flex xs11 class='slider-row'>
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('green', greenSliderValue - 1)">
+              <v-icon>keyboard_arrow_left</v-icon>
+            </button>
+            <input @input='evt => handleRgbSliderChange("green", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('green', greenSliderValue + 1)">
+              <v-icon>keyboard_arrow_right</v-icon>
+            </button>
           </v-flex>
         </v-layout>
         <v-layout row justify-center align-center>
           <v-flex xs1>
             {{ blueSliderValue }}
           </v-flex>	
-          <v-flex xs11>
-            <input type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
+          <v-flex xs11 class='slider-row'>
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('blue', blueSliderValue - 1)">
+              <v-icon>keyboard_arrow_left</v-icon>
+            </button>
+            <input @input='evt => handleRgbSliderChange("blue", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('blue', blueSliderValue + 1)">
+              <v-icon>keyboard_arrow_right</v-icon>
+            </button>
           </v-flex>
         </v-layout>
         <!-- <v-layout row justify-center align-center>
@@ -186,9 +206,9 @@
             v-for='scene in scenes'
             :key='`scene_${scene.id}`'
             :scene='scene'
-            :selected='selectedScenes.includes(scene.id)'
             :handleSceneClick='handleSceneClick'
           />
+            <!-- :selected='selectedScenes.includes(scene.id)' -->
         </v-layout>
       </v-container>
     </div>
@@ -198,14 +218,14 @@
 <script>
 import io from 'socket.io-client';
 import PowerSwitch from './PowerSwitch';
-import LightColor from './LightColor';
+import MultiColorLightCheckbox from './MultiColorLightCheckbox';
 import Scene from './Scene';
 
 export default {
   name: 'Home',
   components: {
     PowerSwitch,
-    LightColor,
+    MultiColorLightCheckbox,
     Scene
   },
   data() {
@@ -214,13 +234,14 @@ export default {
       socket: io(mainServerUrl),
       db: {},
 
+      selectedMultiColorLights: [],
+      showHeaderActions: false,
       // lights: [],
       // scenes: [],
       // groups: [],
       // allLights: [],
       // connectedLights: [],
-      switchesToggledOn: [],
-      selectedLights: [],
+      // switchesToggledOn: [],
       selectedScenes: [],
 
       // createLightObj: {
@@ -279,6 +300,10 @@ export default {
     groups: function() {
       return this.db.groups || [];
     },
+
+    scenes: function() {
+      return this.db.scenes || [];
+    },
     
 
 
@@ -292,6 +317,9 @@ export default {
     connectedLights: function() {
       return this.lights.filter(l => l.connected);
     },
+    connectedMultiColorLights: function() {
+      return this.connectedLights.filter(cl => cl.deviceType === 'LIGHT_MULTICOLOR');
+    },
     switchesActivated: function() {
       const activated = this.connectedDevices.filter(cd => cd.active)
         // .map(cd => cd.id);
@@ -302,44 +330,39 @@ export default {
   },
 
   watch: {
-    redSliderValue: function(val) {
-      this.runLights();
-    },
-    greenSliderValue: function(val) {
-      this.runLights();
-    },
-    blueSliderValue: function(val) {
-      this.runLights();
-    },
-    brightnessSliderValue: function(val) {
-    	console.log(val / (this.redSliderValue / 255))
-      this.redSliderValue = Math.floor((this.redSliderValue / 255) * val);
-      this.greenSliderValue = Math.floor((this.greenSliderValue / 255) * val);
-      this.blueSliderValue = Math.floor((this.blueSliderValue / 255) * val);
-      this.runLights();
-    },
+    // redSliderValue: function(val) {
+    //   this.updateMultiColorLights();
+    //   console.log('hello')
+    // },
+    // greenSliderValue: function(val) {
+    //   this.updateMultiColorLights();
+    // },
+    // blueSliderValue: function(val) {
+    //   this.updateMultiColorLights();
+    // },
+    // brightnessSliderValue: function(val) {
+    // 	console.log(val / (this.redSliderValue / 255))
+    //   this.redSliderValue = Math.floor((this.redSliderValue / 255) * val);
+    //   this.greenSliderValue = Math.floor((this.greenSliderValue / 255) * val);
+    //   this.blueSliderValue = Math.floor((this.blueSliderValue / 255) * val);
+    //   this.runLights();
+    // },
 
     // update the lights for the 'create a scene' object
-    'createSceneObj.rSliderVal': function(redVal) {
-      this.updateNewSceneLights();
-    },
-    'createSceneObj.gSliderVal': function(greenVal) {
-      this.updateNewSceneLights();
-    },
-    'createSceneObj.bSliderVal': function(blueVal) {
-      this.updateNewSceneLights();
-    },
+    // 'createSceneObj.rSliderVal': function(redVal) {
+    //   this.updateNewSceneLights();
+    // },
+    // 'createSceneObj.gSliderVal': function(greenVal) {
+    //   this.updateNewSceneLights();
+    // },
+    // 'createSceneObj.bSliderVal': function(blueVal) {
+    //   this.updateNewSceneLights();
+    // },
   },
 
   mounted() {
     // re-instantiate the lights and scenes
     this.socket.on('browser-init', data => {
-      // const { lights, scenes } = data.devices;
-      // this.lights = lights;
-      // this.scenes = scenes;
-      // this.switchesToggledOn = lights.filter(l => l.active).map(l => l.id);
-
-      console.log(data)
       this.db = data;
     })
 
@@ -400,16 +423,31 @@ export default {
   },
 
   methods: {
-    // runLights: function() {
-    //   this.socket.emit('update-lights', {
-    //     lights: this.selectedLights,
-    //     rgb: {
-    //       red: this.redSliderValue,
-    //       green: this.greenSliderValue,
-    //       blue: this.blueSliderValue,
-    //     }
-    //   })
-    // },
+    updateMultiColorLights: function() {
+      this.selectedMultiColorLights = this.selectedMultiColorLights.map(mcl => {
+        const { redSliderValue, greenSliderValue, blueSliderValue } = this;
+        mcl.status = {
+          red: redSliderValue,
+          green: greenSliderValue,
+          blue: blueSliderValue
+        }
+        return mcl;
+      })
+
+      this.socket.emit('update-devices', { devices: this.selectedMultiColorLights });
+    },
+
+    setSelectedLightsToCurrentColor: function() {
+      this.updateMultiColorLights();
+    },
+
+    toggleHeaderActionBar: function() {
+      this.showHeaderActions = !this.showHeaderActions;
+    },
+
+    readDb: function() {
+      this.socket.emit('read-db');
+    },
 
     // deleteLight: function(id) {
     //   this.socket.emit('delete-light', {
@@ -484,41 +522,58 @@ export default {
 
 
     // // EVENT HANDLERS
-    handlePowerSwitchClick: function(id) {
-      const device = this.devices.find(d => d.id === id);
+    handlePowerSwitchClick: function(device) {
       device.active = !device.active;
       this.socket.emit('toggle-device', { device });
     },
     
-    // handleLightColorClick: function(id) {
-    //   // this.socket.emit('update-light-color', { id });
+    handleMultiColorLightCheckboxClick: function(light) {
+      // this.socket.emit('update-light-color', { id });
 
-    //   // hold all lights being changed locally
-    //   const found = this.selectedLights.find(val => val === id);
-    //   if (found !== undefined) {
-    //     this.selectedLights = this.selectedLights.filter(val => val !== id);
+      // hold all lights being changed locally
+      const found = this.selectedMultiColorLights.find(l => l.id === light.id);
 
-    //     if (this.selectedLights.length) {
-    //       this.socket.emit('get-light-rgb-status-for-sliders', {
-    //         light: this.lights.find(l => l.id === this.selectedLights[this.selectedLights.length - 1].id)
-    //       })  
-    //     } else {
-    //       this.redSliderValue = 0;
-    //       this.greenSliderValue = 0;
-    //       this.blueSliderValue = 0;
-    //     }
-        
-    //   } else {
-    //     this.selectedLights = this.selectedLights.concat(id);
-    //     this.socket.emit('get-light-rgb-status-for-sliders', {
-    //       light: this.lights.find(l => l.id === id)
-    //     })    
-    //   }
-    // },
+
+      if (!found) {
+        this.selectedMultiColorLights = this.selectedMultiColorLights.concat(light);
+
+        // get this light's last known RGB value
+        const { red, green, blue } = light.status;
+        this.redSliderValue = red;
+        this.greenSliderValue = green;
+        this.blueSliderValue = blue;
+        return;
+      } 
+      
+      this.selectedMultiColorLights = this.selectedMultiColorLights.filter(sl => sl.id !== light.id);
+
+      // get the previously selected light's last known RGB value
+      if (!this.selectedMultiColorLights.length) {
+        this.redSliderValue = 0;
+        this.greenSliderValue = 0;
+        this.blueSliderValue = 0;
+      } else { 
+        const previousSelectedLight = this.selectedMultiColorLights[this.selectedMultiColorLights.length - 1];
+        const { red, green, blue } = previousSelectedLight.status;
+        this.redSliderValue = red;
+        this.greenSliderValue = green;
+        this.blueSliderValue = blue;
+      }
+    },
+
+    handleRgbSliderChange: function(color, value) {
+      if (value < 0 || value > 255) return;
+
+      if (color === 'red') this.redSliderValue = value;
+      if (color === 'green') this.greenSliderValue = value;
+      if (color === 'blue') this.blueSliderValue = value;
+      this.updateMultiColorLights();
+    },
     
-    // handleSceneClick: function(id) {
-    //   this.socket.emit('run-scene', { id });
-    // },
+    handleSceneClick: function(id) {
+      console.log(`selected scene id: ${id}`)
+      this.socket.emit('run-scene', { id });
+    },
 
     // setAllSelectedLightsToColor: function() {
     //   runLights();
@@ -548,9 +603,16 @@ export default {
   align-items: center;
   border-bottom: 1px solid white;
   padding: 10px;
-  margin-bottom: 50px;
 }
 
+.header-actions {
+  margin-top: 10px;
+}
+
+.spacer-50 {
+  margin-bottom: 50px;
+}
+  
 .header-action-btn{
   margin: 5px;
   border: 1px solid #fafafa;
@@ -735,5 +797,21 @@ export default {
   #blueSlider::-moz-range-thumb {background: blue;}
   #brightnessSlider::-webkit-slider-thumb {background: rgb(255, 255, 108);}
   #brightnessSlider::-moz-range-thumb {background: rgb(255, 255, 108);}
+
+  .slider-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .slider-value-change-btn {
+    background: rgba(0,0,0,0.2);
+    margin: 10px;
+    padding: 5px;
+    border-radius: 4px;
+  }
+  .slider-value-change-btn i { 
+    color: white;
+  }
 
 </style>

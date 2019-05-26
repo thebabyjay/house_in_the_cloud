@@ -111,22 +111,13 @@
 
     <div v-if='!showCreatePanel && !showEditPanel'>
       <h1>Devices</h1>
-      <v-container>
-        <v-layout row wrap justify-center>
-          <power-switch
-            v-for='device in devices' 
-            :key='`light_switch_${device.id}`' 
-            :showSwitch='true'
-            :device='device' 
-            :handlePowerSwitchClick='handlePowerSwitchClick'
-            :selected='switchesActivated.find(sw => sw.id === device.id) ? true : false'
-            :class='{ "switch-disabled": !connectedDevices.find(l => l.id === device.id) }'
-            :disabled='!connectedDevices.find(l => l.id === device.id)'
-          />
-            <!-- :selected='switchesActivated.includes(device.id)' -->
-            
-        </v-layout>
-      </v-container>
+      <all-devices 
+      :devices='devices'
+      :showSwitch='true'
+      :handleClick='handlePowerSwitchClick'
+      :connectedDevices='connectedDevices'
+      :switchesActivated='switchesActivated'
+      />
 
 
       <h1 style='margin-top: 30px;'>Custom Lighting</h1>
@@ -217,14 +208,16 @@
 
 <script>
 import io from 'socket.io-client';
-import PowerSwitch from './PowerSwitch';
+import AllDevices from './AllDevices';
+
+// import PowerSwitch from './PowerSwitch';
 import MultiColorLightCheckbox from './MultiColorLightCheckbox';
 import Scene from './Scene';
 
 export default {
   name: 'Home',
   components: {
-    PowerSwitch,
+    AllDevices,
     MultiColorLightCheckbox,
     Scene
   },
@@ -426,7 +419,6 @@ export default {
     updateMultiColorLights: function() {
       this.selectedMultiColorLights = this.selectedMultiColorLights.map(mcl => {
         const { redSliderValue, greenSliderValue, blueSliderValue } = this;
-        mcl.active = true;
         mcl.status = {
           red: redSliderValue,
           green: greenSliderValue,
@@ -572,7 +564,6 @@ export default {
     },
     
     handleSceneClick: function(id) {
-      console.log(`selected scene id: ${id}`)
       this.socket.emit('run-scene', { id });
     },
 
