@@ -11,24 +11,13 @@ const PORT = 3000;
 
 const sockets = {};
 let db = {};
-// let db = {
-//     "devices": {
-//         "lights": [],
-//         "switches": []
-//     },
-//     "scenes": [],
-//     "groups": []
-// };
 
+// setup CORS
 cors();
 
 
 /**
  * FUNCTIONS
- * @func writeJson
- * @func readJson
- * @func writeDbToFile
- * 
  */
 
  /**
@@ -99,9 +88,15 @@ const updateSatellites = deviceArr => {
     deviceArr.forEach(device => {
         sockets[device.id] && sockets[device.id].emit('update-satellite', { device })
     })    
+
+    // send new info to all connected clients
     emitBrowserInit();
 }
 
+/**
+ * @desc toggles one device (on or off) according to its device type
+ * @param {Object} data 
+ */
 const toggleDevice = data => {
     const { device } = data;
     const { deviceType } = device;
@@ -121,16 +116,17 @@ const toggleDevice = data => {
             break;
     }
 
-    // update hardware devices when the user changes settings
-    updateSatellites([device])
-
     // save the changes to the database
     writeDb();
 
-    // send new info to all connected clients
-    emitBrowserInit();
+    // update hardware devices when the user changes settings
+    updateSatellites([device])
 }
 
+/**
+ * @desc update device in the database
+ * @param {Array} devices - a list of modifed devices
+ */
 const updateDevices = ({ devices }) => {
     if (!devices.length) return;
 
@@ -152,15 +148,26 @@ const updateDevices = ({ devices }) => {
                 break;
         }
     })
-
-    // update hardware devices when the user changes settings
-    updateSatellites(devices)
-
+    
     // save the changes to the database
     writeDb();
+    
+    // update hardware devices when the user changes settings
+    updateSatellites(devices)
+}
 
-    // send new info to all connected clients
-    emitBrowserInit();
+/**
+ * @desc run a selected scene (change devices in the selected scene)
+ */
+const runScene = (info) => {
+    const { id: sceneId } = info;
+    const scene = db.scenes.find(s => s.id === sceneId)
+
+    if (!scene) {
+        return console.log('scene not found')
+    }
+    update
+    console.log(scene.devices)
 }
 
 
@@ -255,6 +262,7 @@ io.sockets.on('connection', socket => {
     socket.on('update-devices', updateDevices);
     socket.on('toggle-device', toggleDevice);
     socket.on('read-db', readDb);
+    socket.on('run-scene', runScene);
     
 })
 

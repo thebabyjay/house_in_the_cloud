@@ -153,11 +153,11 @@
             {{ redSliderValue }}
           </v-flex>	
           <v-flex xs11 class='slider-row'>
-            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('red', redSliderValue - 1)">
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('red', redSliderValue - 1)">
               <v-icon>keyboard_arrow_left</v-icon>
             </button>
-            <input @input='evt => rgbSliderOnChange("red", parseInt(evt.target.value))' type="range" min="0" max="255" :value='redSliderValue' class="slider" id="redSlider">
-            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('red', redSliderValue + 1)">
+            <input @input='evt => handleRgbSliderChange("red", parseInt(evt.target.value))' type="range" min="0" max="255" :value='redSliderValue' class="slider" id="redSlider">
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('red', redSliderValue + 1)">
               <v-icon>keyboard_arrow_right</v-icon>
             </button>
           </v-flex>
@@ -167,11 +167,11 @@
             {{ greenSliderValue }}
           </v-flex>	
           <v-flex xs11 class='slider-row'>
-            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('green', greenSliderValue - 1)">
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('green', greenSliderValue - 1)">
               <v-icon>keyboard_arrow_left</v-icon>
             </button>
-            <input @input='evt => rgbSliderOnChange("green", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
-            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('green', greenSliderValue + 1)">
+            <input @input='evt => handleRgbSliderChange("green", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('green', greenSliderValue + 1)">
               <v-icon>keyboard_arrow_right</v-icon>
             </button>
           </v-flex>
@@ -181,11 +181,11 @@
             {{ blueSliderValue }}
           </v-flex>	
           <v-flex xs11 class='slider-row'>
-            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('blue', blueSliderValue - 1)">
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('blue', blueSliderValue - 1)">
               <v-icon>keyboard_arrow_left</v-icon>
             </button>
-            <input @input='evt => rgbSliderOnChange("blue", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
-            <button class='slider-value-change-btn' @click="() => rgbSliderOnChange('blue', blueSliderValue + 1)">
+            <input @input='evt => handleRgbSliderChange("blue", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
+            <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('blue', blueSliderValue + 1)">
               <v-icon>keyboard_arrow_right</v-icon>
             </button>
           </v-flex>
@@ -206,9 +206,9 @@
             v-for='scene in scenes'
             :key='`scene_${scene.id}`'
             :scene='scene'
-            :selected='selectedScenes.includes(scene.id)'
             :handleSceneClick='handleSceneClick'
           />
+            <!-- :selected='selectedScenes.includes(scene.id)' -->
         </v-layout>
       </v-container>
     </div>
@@ -242,7 +242,7 @@ export default {
       // allLights: [],
       // connectedLights: [],
       // switchesToggledOn: [],
-      // selectedScenes: [],
+      selectedScenes: [],
 
       // createLightObj: {
       //   id: null,
@@ -299,6 +299,10 @@ export default {
     },
     groups: function() {
       return this.db.groups || [];
+    },
+
+    scenes: function() {
+      return this.db.scenes || [];
     },
     
 
@@ -434,15 +438,6 @@ export default {
       this.socket.emit('update-devices', { devices: this.selectedMultiColorLights });
     },
 
-    rgbSliderOnChange: function(color, value) {
-      if (value < 0 || value > 255) return;
-
-      if (color === 'red') this.redSliderValue = value;
-      if (color === 'green') this.greenSliderValue = value;
-      if (color === 'blue') this.blueSliderValue = value;
-      this.updateMultiColorLights();
-    },
-
     setSelectedLightsToCurrentColor: function() {
       this.updateMultiColorLights();
     },
@@ -566,10 +561,19 @@ export default {
         this.blueSliderValue = blue;
       }
     },
+
+    handleRgbSliderChange: function(color, value) {
+      if (value < 0 || value > 255) return;
+
+      if (color === 'red') this.redSliderValue = value;
+      if (color === 'green') this.greenSliderValue = value;
+      if (color === 'blue') this.blueSliderValue = value;
+      this.updateMultiColorLights();
+    },
     
-    // handleSceneClick: function(id) {
-    //   this.socket.emit('run-scene', { id });
-    // },
+    handleSceneClick: function(id) {
+      this.socket.emit('run-scene', { id });
+    },
 
     // setAllSelectedLightsToColor: function() {
     //   runLights();
