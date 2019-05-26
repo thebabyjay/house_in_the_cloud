@@ -134,6 +134,10 @@ const updateDevices = ({ devices }) => {
     devices.forEach(device => {
         const { deviceType } = device;
         let idx;
+
+        // set the active flag for each affected device
+        device.active = true;
+        
         switch(deviceType) {
             case deviceTypes.LIGHT_MULTICOLOR:
             case deviceTypes.LIGHT_UNICOLOR_DIMMABLE:
@@ -162,7 +166,8 @@ const updateDevices = ({ devices }) => {
  */
 const runScene = (info) => {
     const { id: sceneId } = info;
-    const scene = db.scenes.find(s => s.id === sceneId)
+    const tempscene = db.scenes.find(s => s.id === sceneId)
+    const scene = Object.assign({}, tempscene);
 
     // get out if a scene does not exist
     if (!scene) {
