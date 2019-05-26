@@ -32,19 +32,19 @@
     },
     "scenes": [
         {
-    		"id": "scene_1",
-    		"name": "Bonne Nuit",
-    		"devices": [
-    			{
-	                "id": "b8:27:eb:01:6b:11",
-    				"status": {
-	                    "red": 0,
-	                    "green": 76,
-	                    "blue": 127
-	            	}
-    			}
-    		]
-    	}
+            "id": "scene_1",
+            "name": "Bonne Nuit",
+            "devices": [
+                {
+                    "id": "b8:27:eb:01:6b:11",
+                    "status": {
+                        "red": 0,
+                        "green": 76,
+                        "blue": 127
+                    }
+                }
+            ]
+        }
     ],
     "groups": []
 }
