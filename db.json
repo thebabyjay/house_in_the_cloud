@@ -30,6 +30,20 @@
         ],
         "switches": []
     },
-    "scenes": [],
+    "scenes": [
+        {
+            "name": "Bonne Nuit",
+            "devices": [
+                {
+                    "id": "b8:27:eb:01:6b:11",
+                    "status": {
+                        "red": "5",
+                        "green": 0,
+                        "blue": "11"
+                    }
+                }
+            ]
+        }
+    ],
     "groups": []
 }

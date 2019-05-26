@@ -71,6 +71,8 @@ const writeDb = () => {
 /**
  * @desc read database from file
  * @desc whenever the database is read in (usually on server startup), all devices should be set to 'disconnected'
+ * @param {socket} socket holds the socket that made the request
+ * @param {Boolean} setDevicesAsDisconnected tells the function whether to reset all devices to not connected or not
  */
 const readDb = (socket, setDevicesAsDisconnected = false) => {
     readJson('db.json', (err, data) => {
@@ -86,15 +88,16 @@ const readDb = (socket, setDevicesAsDisconnected = false) => {
     })
 }
 
+/**
+ * @desc sends updated settings info to the devices that need to update (such as a light needing to change colors)
+ * @param {Array} deviceArr 
+ */
 const updateSatellites = deviceArr => {
     if (!isProduction) return;
 
     
     deviceArr.forEach(device => {
-        if (sockets[device.id]) {
-            sockets[device.id].emit('update-satellite', { device })
-        }
-        // sockets[device.id] && sockets[device.id].emit('update-satellite', { device })
+        sockets[device.id] && sockets[device.id].emit('update-satellite', { device })
     })    
     emitBrowserInit();
 }
@@ -117,8 +120,14 @@ const toggleDevice = data => {
         default:
             break;
     }
+
+    // update hardware devices when the user changes settings
     updateSatellites([device])
+
+    // save the changes to the database
     writeDb();
+
+    // send new info to all connected clients
     emitBrowserInit();
 }
 
@@ -143,7 +152,14 @@ const updateDevices = ({ devices }) => {
                 break;
         }
     })
+
+    // update hardware devices when the user changes settings
     updateSatellites(devices)
+
+    // save the changes to the database
+    writeDb();
+
+    // send new info to all connected clients
     emitBrowserInit();
 }
 
@@ -176,15 +192,15 @@ const emitBrowserInit = () => {
  * @event toggle-device
  * @event delete-device
  * 
- * @event read-database
+ * @event read-database     - reads in the local database file
  * 
  * -- OUTGOING
- * @event browser-init
+ * @event browser-init      - sends all required info to the client browser
  * @param devices { lights, switches}
  * @param scenes
  * @param groups
  * 
- * @event update-satellite
+ * @event update-satellite  - sends all required info to a satellite device
  * @param device { id, status, ative }
  * 
  * 
