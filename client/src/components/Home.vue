@@ -121,7 +121,7 @@
         :scene='sceneToModify'
         :handleCancel='handleModalClose'
         :handleConfirm='handleUpdateScene'
-        :connectedDevices='connectedDevices'
+        :devices='devices'
         />
 
         <scene-delete
@@ -170,55 +170,15 @@
         :blueSliderValue='blueSliderValue'
         :handleChange='handleRgbSliderChange'
         />
-
-        <!-- <v-container style='padding-top: 0'>
-          <v-layout row justify-center align-center>
-            <v-flex xs1>
-              {{ redSliderValue }}
-            </v-flex>	
-            <v-flex xs11 class='slider-row'>
-              <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('red', redSliderValue - 1)">
-                <v-icon>keyboard_arrow_left</v-icon>
-              </button>
-              <input @input='evt => handleRgbSliderChange("red", parseInt(evt.target.value))' type="range" min="0" max="255" :value='redSliderValue' class="slider" id="redSlider">
-              <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('red', redSliderValue + 1)">
-                <v-icon>keyboard_arrow_right</v-icon>
-              </button>
-            </v-flex>
-          </v-layout>
-          <v-layout row justify-center align-center>
-            <v-flex xs1>
-              {{ greenSliderValue }}
-            </v-flex>	
-            <v-flex xs11 class='slider-row'>
-              <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('green', greenSliderValue - 1)">
-                <v-icon>keyboard_arrow_left</v-icon>
-              </button>
-              <input @input='evt => handleRgbSliderChange("green", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='greenSliderValue' class="slider" id="greenSlider">
-              <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('green', greenSliderValue + 1)">
-                <v-icon>keyboard_arrow_right</v-icon>
-              </button>
-            </v-flex>
-          </v-layout>
-          <v-layout row justify-center align-center>
-            <v-flex xs1>
-              {{ blueSliderValue }}
-            </v-flex>	
-            <v-flex xs11 class='slider-row'>
-              <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('blue', blueSliderValue - 1)">
-                <v-icon>keyboard_arrow_left</v-icon>
-              </button>
-              <input @input='evt => handleRgbSliderChange("blue", parseInt(evt.target.value))' type="range" min="0" max="255" v-model='blueSliderValue' class="slider" id="blueSlider">
-              <button class='slider-value-change-btn' @click="() => handleRgbSliderChange('blue', blueSliderValue + 1)">
-                <v-icon>keyboard_arrow_right</v-icon>
-              </button>
-            </v-flex>
-          </v-layout>
-        </v-container> -->
       </div>
       
       <div class="section">
-        <h1>Scenes</h1>
+        <div style='display: flex; flex-direction: row; justify-content: center;'>
+          <h1>Scenes</h1>
+          <button class='add-btn' style='margin-left: 15px;' @click='handleShowSceneUpdate'>
+            <v-icon style='color: white; font-size: 30px;'>add_circle_outline</v-icon>
+          </button> 
+        </div>
         <v-container>
           <v-layout row wrap justify-center>
             <scene 
@@ -551,7 +511,7 @@ export default {
 
     handleShowSceneUpdate: function(evt, scene) {
       evt.cancelBubble = true;
-      this.sceneToModify = scene;
+      this.sceneToModify = scene || null
       this.showUpdateSceneModal = true;
     },
 

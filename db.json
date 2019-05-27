@@ -7,9 +7,9 @@
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
                 "active": true,
-                "connected": false,
+                "connected": true,
                 "status": {
-                    "red": 0,
+                    "red": 169,
                     "green": 3,
                     "blue": 6
                 }
@@ -20,32 +20,16 @@
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
                 "active": true,
-                "connected": false,
+                "connected": true,
                 "status": {
-                    "red": 85,
-                    "green": "0",
-                    "blue": 25
+                    "red": 155,
+                    "green": 0,
+                    "blue": 7
                 }
             }
         ],
         "switches": []
     },
-    "scenes": [
-        {
-            "id": 1,
-            "name": "Bonne Nuit",
-            "image": "goodnight.jpg",
-            "devices": [
-                {
-                    "id": "b8:27:eb:01:6b:11",
-                    "status": {
-                        "red": 0,
-                        "green": 3,
-                        "blue": 6
-                    }
-                }
-            ]
-        }
-    ],
+    "scenes": [],
     "groups": []
 }

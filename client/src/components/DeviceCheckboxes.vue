@@ -11,7 +11,7 @@
             >
                 <div 
                 class="device-button flex-centered" 
-                :class="[selectedDevices.find(d => d.id === device.id) ? 'device-selected' : 'device-unselected']"
+                :class="[!showSwitch && selectedDevices.find(d => d.id === device.id) ? 'device-selected' : 'device-unselected']"
                 @click='() => handleClick(device)'
                 >
                     <span>{{ device.name }}</span>
@@ -33,6 +33,7 @@ export default {
         devices: { type: Array, required: true },
         handleClick: { type: Function, required: true },
         selectedDevices: { type: Array, required: true },
+        showSwitch: { type: Boolean, default: false }
     },
     data() {
         return {

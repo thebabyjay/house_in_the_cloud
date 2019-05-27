@@ -229,12 +229,15 @@ const addOrUpdateScene = ({ scene }) => {
         // find a new id
         const newId = db.scenes.reduce((acc, cur) => acc > cur.id ? acc : cur.id, 0);
         scene.id = newId;
-        return;
+        db.scenes = db.scenes.concat(scene);
+    } else {
+        // if it exists, just update it
+        const sceneIdx = db.scenes.findIndex(s => s.id === id);
+        db.scenes[sceneIdx] = scene;    
     }
 
-    // if it exists, just update it
-    const sceneIdx = db.scenes.findIndex(s => s.id === id);
-    db.scenes[sceneIdx] = scene;
+    writeDb();
+    emitBrowserInit();
 }
 
 
