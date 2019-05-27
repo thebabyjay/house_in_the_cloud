@@ -1,24 +1,21 @@
 <template>
     <div style='font-size: 18px;'>
-    	<div>
-    		<h6>Scene Name</h6>	
-	    	<input 
-	    	type='text' 
-	    	v-model='sceneName' 
-	    	class='textbox' 
-	    	placeholder='e.g. Family Room' 
-	    	/>	
-    	</div>
-    	<div>
-    		<h6>Image Filename</h6>
-    		<input 
-	    	type='text' 
-	    	v-model='imageFilename' 
-	    	class='textbox' 
-	    	placeholder='e.g. goodnight.jpg' 
-	    	/>	
-    	</div>
-    	
+		<h6>Scene Name</h6>	
+    	<input 
+    	type='text' 
+    	v-model='sceneName' 
+    	class='textbox' 
+    	placeholder='e.g. Family Room' 
+    	/>	
+
+		<h6>Image Filename</h6>
+		<input 
+    	type='text' 
+    	v-model='imageFilename' 
+    	class='textbox' 
+    	placeholder='e.g. goodnight.jpg' 
+    	/>	
+
         <hr style='margin-bottom: 15px' />
     	<h4>All devices</h4>
     	<p class='note'>- tap on these to add them to the scene</p>
@@ -236,6 +233,7 @@ export default {
 	padding: 5px;
 	width: 75%;
 	text-align: center;
+	z-index: 1000;
 }
 
 .note {

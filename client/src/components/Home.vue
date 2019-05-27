@@ -7,131 +7,35 @@
     </div>
     <div class='header-actions' v-if='showHeaderActions'>
         <button class='header-action-btn' @click='readDb'>Read DB</button>
-        <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showCreatePanel }' @click='() => showCreatePanel = !showCreatePanel'>Create</button> -->
-        <!-- <button class='header-action-btn' :class='{ "header-action-btn-active": showEditPanel }' @click='() => showEditPanel = !showEditPanel'>Edit</button> -->
     </div>
 
     <div class='spacer-50' />
 
-    <!-- <div v-if='showEditPanel' style='border-bottom: 1px solid white; margin-bottom: 25px;padding-bottom: 25px;'>
-      <h3 style='margin-bottom: 15px;'>Mode:Edit</h3>
-      <section>
-        <h5>Lights</h5>
-        <div v-for='light in lights' :key='"edit-light-" + light.id' class='acc-edit-row'>
-          <button @click='() => deleteLight(light.id)'><i class="material-icons remove-icon">remove_circle_outline</i></button>
-          <input type='text' class='edit-accessory-input' v-model='light.name' />
-          <button @click='() => updateLight(light)'><i class="material-icons save-icon">check_circle_outline</i></button>
-        </div>
-      </section>
-      <section style='margin-top: 30px;'>
-        <h5>Scenes</h5>
-        <div v-for='scene in scenes' :key='"edit-scene-" + scene.id' class='acc-edit-row'>
-          //<button @click='() => deleteScene(scene.id)'><i class="material-icons remove-icon">remove_circle_outline</i></button>
-          <input type='text' class='edit-accessory-input' v-model='scene.name' />
-          <button @click='() => updateScene(scene)'><i class="material-icons save-icon">check_circle_outline</i></button>
-        </div>
-      </section>
-    </div> -->
-
-    <!-- <div v-if='showCreatePanel'  style='border-bottom: 1px solid white; margin-bottom: 25px;padding-bottom: 25px;'>
-      <h3 style='margin-bottom: 15px;'>Mode:Create</h3>
-      <form @submit='evt => evt.preventDefault()'>
-        <input required v-model='createSceneObj.name' class='create-acc-input' placeholder='Scene name'/>
-
-        <v-container>
-          <h4>Available lights</h4>
-          <v-layout row wrap justify-center align-center>
-            <v-flex xs4 sm3 md2 v-for='light in lights' :key='"create-scene-" + light.id' class='create-scene-light-container' @click='() => {
-              if (createSceneObj.lights.find(l => l.id === light.id)) {
-                createSceneObj.lights = createSceneObj.lights.filter(l => l.id !== light.id)
-                createSceneObj.activeLights = createSceneObj.activeLights.filter(l => l.id !== light.id);
-                return;
-              }  
-              createSceneObj.lights = createSceneObj.lights.concat(light);
-            }'>
-              {{ light.name }}
-            </v-flex>
-
-          </v-layout>
-
-          <h4 style='margin-top: 20px;'>Selected Lights</h4>
-          <v-layout row wrap justify-center align-center>
-            <v-flex 
-            xs4 
-            sm3 
-            md2 
-            v-for='light in createSceneObj.lights' 
-            :key='"create-scene-" + light.id' 
-            class='create-scene-light-container' 
-            :class='{ "light-selected": createSceneObj.activeLights.find(l => l.id === light.id) }' 
-            @click='() => {
-              if (createSceneObj.activeLights.find(l => l.id === light.id)) {
-                createSceneObj.activeLights = createSceneObj.activeLights.filter(l => l.id !== light.id)
-                return;
-              }
-              createSceneObj.activeLights = createSceneObj.activeLights.concat(light)
-            }'
-            >              
-              {{ light.name }}
-            </v-flex>
-          </v-layout>
-        </v-container>
-
-        <v-container>
-          <v-layout row justify-center align-center>
-            <v-flex xs1>
-              {{ createSceneObj.rSliderVal }}
-            </v-flex>	
-            <v-flex xs11>
-              <input type="range" min="0" max="255" v-model='createSceneObj.rSliderVal' class="slider" id="redSlider">
-            </v-flex>
-          </v-layout>
-          <v-layout row justify-center align-center>
-            <v-flex xs1>
-              {{ createSceneObj.gSliderVal }}
-            </v-flex>	
-            <v-flex xs11>
-              <input type="range" min="0" max="255" v-model='createSceneObj.gSliderVal' class="slider" id="greenSlider">
-            </v-flex>
-          </v-layout>
-          <v-layout row justify-center align-center>
-            <v-flex xs1>
-              {{ createSceneObj.bSliderVal }}
-            </v-flex>	
-            <v-flex xs11>
-              <input type="range" min="0" max="255" v-model='createSceneObj.bSliderVal' class="slider" id="blueSlider">
-            </v-flex>
-          </v-layout>
-        </v-container>
-        
-        <button class='create-btn' @click='createScene()' >Create!</button>
-        <p style='margin-top: 10px;' v-text='createSceneMessage'></p>
-      </form>
-    </div> -->
-
+    <!-- Modal for scenes -->
     <div class='modal' v-if='showUpdateSceneModal || showDeleteSceneModal'>
-      <div class="modal-body">
-        <!-- close button for all modals -->
-        <button class="modal-exit-btn" @click='handleModalClose'>
-          <v-icon>close</v-icon>
-        </button>
+      <div class="modal-extra-container">
+        <div class="modal-body">
+          <button class="modal-exit-btn" @click='handleModalClose'>
+            <v-icon>close</v-icon>
+          </button>
 
-        <scene-update 
-        v-if='showUpdateSceneModal'
-        :scene='sceneToModify'
-        :handleCancel='handleModalClose'
-        :handleConfirm='handleUpdateScene'
-        :devices='devices'
-        />
+          <scene-update 
+          v-if='showUpdateSceneModal'
+          :scene='sceneToModify'
+          :handleCancel='handleModalClose'
+          :handleConfirm='handleUpdateScene'
+          :devices='devices'
+          />
 
-        <scene-delete
-        v-if='showDeleteSceneModal'
-        :scene='sceneToModify'
-        :handleCancel='handleModalClose'
-        :handleConfirm='handleDeleteScene'
-        />
-      </div>
-    </div>  
+          <scene-delete
+          v-if='showDeleteSceneModal'
+          :scene='sceneToModify'
+          :handleCancel='handleModalClose'
+          :handleConfirm='handleDeleteScene'
+          />
+        </div>
+      </div>  
+    </div>
 
     <div>
       <div class='section'>
@@ -224,43 +128,8 @@ export default {
 
       selectedMultiColorLights: [],
       showHeaderActions: false,
-      // lights: [],
-      // scenes: [],
-      // groups: [],
-      // allLights: [],
-      // connectedLights: [],
-      // switchesToggledOn: [],
+
       selectedScenes: [],
-
-      // createLightObj: {
-      //   id: null,
-      //   name: '',
-      //   active: false,
-      //   connected: false,
-      //   rgb: {
-      //     red: 0,
-      //     green: 0,
-      //     blue: 0
-      //   },
-      //   groups: []
-      // },
-      // createSceneObj: {
-      //   id: null,
-      //   name: '',
-      //   image: '',
-      //   active: false,
-      //   lights: [],
-
-      //   // these will be filtered out when sent to the backend
-      //   activeLights: [],
-      //   rSliderVal: 0,
-      //   gSliderVal: 0,
-      //   bSliderVal: 0,
-      // },
-      // createSceneMessage: '',
-      // createGroupObj: {
-
-      // },
 
       redSliderValue: 0,
       greenSliderValue: 0,
@@ -312,42 +181,9 @@ export default {
     },
     switchesActivated: function() {
       const activated = this.connectedDevices.filter(cd => cd.active)
-        // .map(cd => cd.id);
-      // console.log(this.connectedDevices)
       return activated;
     }
 
-  },
-
-  watch: {
-    // redSliderValue: function(val) {
-    //   this.updateMultiColorLights();
-    //   console.log('hello')
-    // },
-    // greenSliderValue: function(val) {
-    //   this.updateMultiColorLights();
-    // },
-    // blueSliderValue: function(val) {
-    //   this.updateMultiColorLights();
-    // },
-    // brightnessSliderValue: function(val) {
-    // 	console.log(val / (this.redSliderValue / 255))
-    //   this.redSliderValue = Math.floor((this.redSliderValue / 255) * val);
-    //   this.greenSliderValue = Math.floor((this.greenSliderValue / 255) * val);
-    //   this.blueSliderValue = Math.floor((this.blueSliderValue / 255) * val);
-    //   this.runLights();
-    // },
-
-    // update the lights for the 'create a scene' object
-    // 'createSceneObj.rSliderVal': function(redVal) {
-    //   this.updateNewSceneLights();
-    // },
-    // 'createSceneObj.gSliderVal': function(greenVal) {
-    //   this.updateNewSceneLights();
-    // },
-    // 'createSceneObj.bSliderVal': function(blueVal) {
-    //   this.updateNewSceneLights();
-    // },
   },
 
   mounted() {
@@ -355,61 +191,6 @@ export default {
     this.socket.on('browser-init', data => {
       this.db = data;
     })
-
-    // set a light button that could have been changed by another user
-    // this.socket.on('update-light', data => {
-    //   const { id, active } = data;
-    //   const found = this.switchesToggledOn.find(val => val === id);
-    //   if (found && !active) {
-    //     this.switchesToggledOn = this.switchesToggledOn.filter(val => val !== id);
-    //   } else if (!found && active) {
-    //     this.switchesToggledOn = this.switchesToggledOn.concat(id);
-    //   }
-    //   // const found = this.selectedLights.find(val => val === id);
-    //   // if (found && !active) {
-    //   //   this.selectedLights = this.selectedLights.filter(val => val !== id);
-    //   // } else if (!found && active) {
-    //   //   this.selectedLights = this.selectedLights.concat(id);
-    //   // }
-    // })
-
-    // this.socket.on('light-deleted', data => {
-    //   const { id } = data;
-    //   this.lights = this.lights.filter(l => l.id !== id);
-    // })
-
-    // this.socket.on('update-light-info', data => {
-    //   const { light } = data;
-    //   this.lights = this.lights.map(l => {
-    //     if (l.id === light.id) {
-    //       return light;
-    //     }
-    //     return l;
-    //   })
-    // })
-
-    // this.socket.on('scene-deleted', data => {
-    //   const { id } = data;
-    //   this.scenes = this.scenes.filter(s => s.id !== id);
-    // })
-
-    // this.socket.on('scene-updated', data => {
-    //   const { scene } = data;
-    //   this.scenes = this.scenes.map(s => {
-    //     if (s.id === scene.id) {
-    //       return scene;
-    //     }
-    //     return s;
-    //   })
-    // }),
-
-    // this.socket.on('get-light-rgb-status-for-sliders', data => {
-    //   const { rgb } = data.light;
-    //   this.redSliderValue = rgb.red;
-    //   this.greenSliderValue = rgb.green;
-    //   this.blueSliderValue = rgb.blue; 
-    // })
-
   },
 
   methods: {
@@ -796,21 +577,31 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
-  height: 100vh;
+  min-height: 100%;
   z-index: 5;
   background-color: rgba(0,0,0,0.8);
+}
+
+.modal-extra-container {
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  overflow-y: scroll;
 }
 
 .modal-body {
   position: relative;
+  flex: 1;
   width: 90%;
   background-color: #272a31;
   padding: 25px;
   border-radius: 15px;
+  overflow-y: scroll;
 }
 
 .no-scroll {
