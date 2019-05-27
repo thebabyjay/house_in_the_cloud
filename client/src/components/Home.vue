@@ -13,7 +13,7 @@
 
     <!-- Modal for scenes -->
     <div class='modal' v-if='showUpdateSceneModal || showDeleteSceneModal'>
-      <div class="modal-extra-container">
+      <!-- <div class="modal-extra-container"> -->
         <div class="modal-body">
           <button class="modal-exit-btn" @click='handleModalClose'>
             <v-icon>close</v-icon>
@@ -34,7 +34,7 @@
           :handleConfirm='handleDeleteScene'
           />
         </div>
-      </div>  
+      <!-- </div>   -->
     </div>
 
     <div>
@@ -580,23 +580,24 @@ export default {
   min-height: 100%;
   z-index: 5;
   background-color: rgba(0,0,0,0.8);
-}
-
-.modal-extra-container {
-  width: 100%;
-  height: 100%;
+  
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding-top: 20px;
   padding-bottom: 20px;
-  overflow-y: scroll;
 }
 
+/*.modal-extra-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+}
+*/
 .modal-body {
   position: relative;
-  flex: 1;
+  /*flex: 1;*/
   width: 90%;
   background-color: #272a31;
   padding: 25px;
