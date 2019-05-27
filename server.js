@@ -227,8 +227,8 @@ const addOrUpdateScene = ({ scene }) => {
     const { id } = scene;
     if (!id || !db.scenes.find(s => s.id === id)) {
         // find a new id
-        const newId = db.scenes.reduce((acc, cur) => acc > cur.id ? acc : cur.id, 0);
-        scene.id = newId;
+        const highestId = db.scenes.reduce((acc, cur) => acc > cur.id ? acc : cur.id, 0);
+        scene.id = highestId + 1;
         db.scenes = db.scenes.concat(scene);
     } else {
         // if it exists, just update it

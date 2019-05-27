@@ -9,9 +9,9 @@
                 "active": true,
                 "connected": true,
                 "status": {
-                    "red": 169,
+                    "red": 1,
                     "green": 3,
-                    "blue": 6
+                    "blue": 168
                 }
             },
             {
