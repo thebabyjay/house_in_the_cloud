@@ -10,8 +10,8 @@
                 "connected": true,
                 "status": {
                     "red": 1,
-                    "green": 64,
-                    "blue": 200
+                    "green": 2,
+                    "blue": 4
                 }
             },
             {
@@ -19,12 +19,12 @@
                 "name": "Unicorn",
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
-                "active": true,
+                "active": false,
                 "connected": true,
                 "status": {
-                    "red": 1,
-                    "green": 64,
-                    "blue": 200
+                    "red": 135,
+                    "green": 0,
+                    "blue": 125
                 }
             }
         ],
@@ -34,7 +34,7 @@
         {
             "id": 1,
             "name": "Je T`aime",
-            "image": "goodmorning.jpg",
+            "image": "black_texture.jpg",
             "devices": [
                 {
                     "id": "b8:27:eb:01:6b:11",
@@ -44,9 +44,9 @@
                     "active": true,
                     "connected": true,
                     "status": {
-                        "red": 1,
-                        "green": 64,
-                        "blue": 200
+                        "red": 135,
+                        "green": 0,
+                        "blue": 125
                     }
                 },
                 {
@@ -57,9 +57,108 @@
                     "active": true,
                     "connected": true,
                     "status": {
-                        "red": 1,
-                        "green": 64,
-                        "blue": 200
+                        "red": 135,
+                        "green": 0,
+                        "blue": 125
+                    }
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Bonne Nuit",
+            "image": "goodnight.jpg",
+            "devices": [
+                {
+                    "id": "b8:27:eb:01:6b:11",
+                    "name": "Jason's Room 16ft",
+                    "deviceType": "LIGHT_MULTICOLOR",
+                    "deviceCategory": "lights",
+                    "active": true,
+                    "connected": true,
+                    "status": {
+                        "red": 0,
+                        "green": 3,
+                        "blue": 6
+                    }
+                },
+                {
+                    "id": "b8:27:eb:cc:13:9a",
+                    "name": "Unicorn",
+                    "deviceType": "LIGHT_MULTICOLOR",
+                    "deviceCategory": "lights",
+                    "active": true,
+                    "connected": true,
+                    "status": {
+                        "red": 0,
+                        "green": 3,
+                        "blue": 6
+                    }
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": "Relax",
+            "image": "relax.jpg",
+            "devices": [
+                {
+                    "id": "b8:27:eb:01:6b:11",
+                    "name": "Jason's Room 16ft",
+                    "deviceType": "LIGHT_MULTICOLOR",
+                    "deviceCategory": "lights",
+                    "active": true,
+                    "connected": true,
+                    "status": {
+                        "red": 90,
+                        "green": 30,
+                        "blue": 0
+                    }
+                },
+                {
+                    "id": "b8:27:eb:cc:13:9a",
+                    "name": "Unicorn",
+                    "deviceType": "LIGHT_MULTICOLOR",
+                    "deviceCategory": "lights",
+                    "active": true,
+                    "connected": true,
+                    "status": {
+                        "red": 90,
+                        "green": 30,
+                        "blue": 0
+                    }
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "name": "Bon Matin",
+            "image": "goodmorning.jpg",
+            "devices": [
+                {
+                    "id": "b8:27:eb:01:6b:11",
+                    "name": "Jason's Room 16ft",
+                    "deviceType": "LIGHT_MULTICOLOR",
+                    "deviceCategory": "lights",
+                    "active": true,
+                    "connected": true,
+                    "status": {
+                        "red": 85,
+                        "green": 85,
+                        "blue": 70
+                    }
+                },
+                {
+                    "id": "b8:27:eb:cc:13:9a",
+                    "name": "Unicorn",
+                    "deviceType": "LIGHT_MULTICOLOR",
+                    "deviceCategory": "lights",
+                    "active": true,
+                    "connected": true,
+                    "status": {
+                        "red": 85,
+                        "green": 85,
+                        "blue": 70
                     }
                 }
             ]
