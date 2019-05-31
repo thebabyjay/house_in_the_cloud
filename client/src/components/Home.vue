@@ -5,6 +5,7 @@
         <h1 @click='toggleHeaderActionBar'>House in the Cloud</h1>
       </div>
     </div>
+    <!-- hidden button to re-read the database in -->
     <div class='header-actions' v-if='showHeaderActions'>
         <button class='header-action-btn' @click='readDb'>Read DB</button>
     </div>
@@ -13,31 +14,33 @@
 
     <!-- Modal for scenes -->
     <div class='modal' v-if='showUpdateSceneModal || showDeleteSceneModal'>
-      <!-- <div class="modal-extra-container"> -->
-        <div class="modal-body">
-          <button class="modal-exit-btn" @click='handleModalClose'>
-            <v-icon>close</v-icon>
-          </button>
+      <div class="modal-body">
+        <button class="modal-exit-btn" @click='handleModalClose'>
+          <v-icon>close</v-icon>
+        </button>
 
-          <scene-update 
-          v-if='showUpdateSceneModal'
-          :scene='sceneToModify'
-          :handleCancel='handleModalClose'
-          :handleConfirm='handleUpdateScene'
-          :devices='devices'
-          />
+        <!-- update or create a scene -->
+        <scene-update 
+        v-if='showUpdateSceneModal'
+        :scene='sceneToModify'
+        :handleCancel='handleModalClose'
+        :handleConfirm='handleUpdateScene'
+        :devices='devices'
+        />
 
-          <scene-delete
-          v-if='showDeleteSceneModal'
-          :scene='sceneToModify'
-          :handleCancel='handleModalClose'
-          :handleConfirm='handleDeleteScene'
-          />
-        </div>
-      <!-- </div>   -->
+        <!-- confirmation for deleting a scene -->
+        <scene-delete
+        v-if='showDeleteSceneModal'
+        :scene='sceneToModify'
+        :handleCancel='handleModalClose'
+        :handleConfirm='handleDeleteScene'
+        />
+      </div>
     </div>
 
     <div>
+      
+      <!-- showing all devices -->
       <div class='section'>
         <h1>Devices</h1>
         <device-switches
@@ -49,6 +52,7 @@
         />
       </div>
 
+      <!-- showing all connected multi-color lights -->
       <div class="section">
         <h1>Custom Lighting</h1>
         <v-container>
@@ -76,6 +80,7 @@
         />
       </div>
       
+      <!-- Scenes -->
       <div class="section">
         <div style='display: flex; flex-direction: row; justify-content: center;'>
           <h1>Scenes</h1>
@@ -93,7 +98,6 @@
               :handleShowSceneUpdate='handleShowSceneUpdate'
               :handleShowSceneDelete='handleShowSceneDelete'
             />
-              <!-- :selected='selectedScenes.includes(scene.id)' -->
           </v-layout>
         </v-container>
       </div>
@@ -123,18 +127,15 @@ export default {
   data() {
     const mainServerUrl = `${window.location.hostname}:3000`
     return {
-      socket: io(mainServerUrl),
+      socket: io(mainServerUrl),      // creates websocket connection
       db: {},
 
-      selectedMultiColorLights: [],
+      selectedMultiColorLights: [],   // handling multicolor lights when RGB sliders move
       showHeaderActions: false,
-
-      selectedScenes: [],
 
       redSliderValue: 0,
       greenSliderValue: 0,
       blueSliderValue: 0,
-      // brightnessSliderValue: 0,
 
       // MODAL INFO
       showUpdateSceneModal: false,
@@ -165,7 +166,7 @@ export default {
     },
     
 
-
+    // filter out disconnected devices
     connectedDevices: function() {
       const connectedLights = this.lights.filter(l => l.connected);
       const conenctedSwitches = this.switches.filter(s => s.connected);
@@ -194,6 +195,7 @@ export default {
   },
 
   methods: {
+    // send request to server to update affected satellite devices
     updateMultiColorLights: function() {
       this.selectedMultiColorLights = this.selectedMultiColorLights.map(mcl => {
         const { redSliderValue, greenSliderValue, blueSliderValue } = this;
@@ -208,14 +210,17 @@ export default {
       this.socket.emit('update-devices', { devices: this.selectedMultiColorLights });
     },
 
+    // sets any selected multi-color lights to the current RGB slider values
     setSelectedLightsToCurrentColor: function() {
       this.updateMultiColorLights();
     },
 
+    // shows hidden action bar by pressing on the page banner
     toggleHeaderActionBar: function() {
       this.showHeaderActions = !this.showHeaderActions;
     },
 
+    // tells the server to re-read the database in from file
     readDb: function() {
       this.socket.emit('read-db');
     },
@@ -233,13 +238,14 @@ export default {
     //   })
     // },
 
+    // toggles a device and updates the satellite
     handlePowerSwitchClick: function(device) {
       device.active = !device.active;
       this.socket.emit('toggle-device', { device });
     },
     
+    // handles multi-color light clicks (getting RGB settings for the sliders)
     handleMultiColorLightCheckboxClick: function(light) {
-      // this.socket.emit('update-light-color', { id });
 
       // hold all lights being changed locally
       const found = this.selectedMultiColorLights.find(l => l.id === light.id);
@@ -272,6 +278,7 @@ export default {
       }
     },
 
+    // change lights when RGB sliders move
     handleRgbSliderChange: function(color, value) {
       if (value < 0 || value > 255) return;
 
@@ -281,6 +288,7 @@ export default {
       this.updateMultiColorLights();
     },
     
+    // run a scene
     handleSceneClick: function(id) {
       this.socket.emit('run-scene', { id });
     },
@@ -290,24 +298,28 @@ export default {
     //   this.showCreateSceneModal = true;
     // },
 
+    // open the modal to create/update a scene
     handleShowSceneUpdate: function(evt, scene) {
       evt.cancelBubble = true;
       this.sceneToModify = scene || null
       this.showUpdateSceneModal = true;
     },
 
+    // open the delete confirmation modal
     handleShowSceneDelete: function(evt, scene) {
       evt.cancelBubble = true;
       this.sceneToModify = scene;
       this.showDeleteSceneModal = true;
     },
 
+    // delete a scene
     handleDeleteScene: function(scene) {
       this.socket.emit('delete-scene', { scene })
       this.handleModalClose();
     },
 
     // TODO: JB - add name validation for updating a scene (make sure it doesn't already exist)
+    // update a scene
     handleUpdateScene: function(scene) {
       this.socket.emit('update-scene', { scene });
       this.handleModalClose();

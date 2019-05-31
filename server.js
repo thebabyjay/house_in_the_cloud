@@ -1,11 +1,17 @@
-const http          = require('http').createServer();
-const fs            = require('fs');
-const io            = require('socket.io')(http)
-const cors          = require('cors');
-const deviceTypes   = require('./device/types')
-const deviceCategories = require('./device/categories');
-const deviceTemplates = require('./device/templates');
+const http          = require('http').createServer();       // creating the server
+const fs            = require('fs');                        // reading and writing to files
+const io            = require('socket.io')(http)            // creating a web socket
+const cors          = require('cors');                      // used for security
 
+const deviceTypes   = require('./device/types')             // SWITCH, LIGHT_MULTICOLOR, LIGHT_UNICOLOR, etc
+const deviceCategories = require('./device/categories');    // LIGHT, SWITCH
+const deviceTemplates = require('./device/templates');      // a database template for creating new instances
+
+/**
+ * since I am not hosting this, I use command line arguments to set dev or prod environment
+ * dev is for when I am programming on a Windows machine
+ * prod is for when I am running the program on the raspberry pi
+ */
 const isProduction = process.argv[2] === 'production';
 const PORT = 3000;
 
@@ -31,6 +37,7 @@ const writeJson = (filename, data, cb) => {
     	cb(err);
     })
 }
+
 /**
  * @desc read JSON data from a given file
  * @param {string} filename 
@@ -42,12 +49,11 @@ const readJson = (filename, cb) => {
             return cb(err, null);
         }
         return cb(null, JSON.parse(data));
-        // return JSON.parse(data);
     })
 }
 
 /**
- * @desc write the local database out to a file to save it for data persistence
+ * @desc write the local database out to a file 
  */
 const writeDb = () => {
 	writeJson('./db.json', db, err => {
@@ -63,7 +69,7 @@ const writeDb = () => {
  * @param {socket} socket holds the socket that made the request
  * @param {Boolean} setDevicesAsDisconnected tells the function whether to reset all devices to not connected or not
  */
-const readDb = (socket, setDevicesAsDisconnected = false) => {
+const readDb = (setDevicesAsDisconnected = false) => {
     readJson('db.json', (err, data) => {
         Object.keys(data.devices).forEach(deviceType => {
             data.devices[deviceType] = data.devices[deviceType].map(device => {
@@ -72,6 +78,7 @@ const readDb = (socket, setDevicesAsDisconnected = false) => {
             })
         })
         
+        // update the local database object
         db = data;
         emitBrowserInit();
     })
@@ -94,6 +101,7 @@ const updateSatellites = deviceArr => {
     emitBrowserInit();
 }
 
+// TODO: JB - merge toggle device wuth update devices since toggleDevice does not actually toggle a device as the device is toggled on the front end and sent to the server 
 /**
  * @desc toggles one device (on or off) according to its device type
  * @param {Object} data 
@@ -132,6 +140,8 @@ const updateDevices = ({ devices }) => {
     if (!devices.length) return;
 
     devices.forEach(device => {
+        if (!device) return;
+
         const { deviceType } = device;
         let idx;
 
@@ -174,32 +184,37 @@ const runScene = (info) => {
         return console.log('scene not found')
     }
 
-    // get the full object for each device in a scene
-    const allDeviceList = Object.keys(db.devices).reduce((acc, deviceCat) => acc.concat(db.devices[deviceCat]), []);
-    scene.devices = scene.devices.map(d => {
-        const device = allDeviceList.find(dev => dev.id === d.id);
-
-        if (!device) return;
-
-        switch(device.deviceType) {
-            case deviceTypes.LIGHT_MULTICOLOR:
-            case deviceTypes.LIGHT_UNICOLOR_DIMMABLE:
-            case deviceTypes.LIGHT_UNICOLOR_NONDIMMABLE:
-                // device = db.devices.lights.find(l => l.id === d.id);
-                device.status = d.status;
-                break;
-            case deviceTypes.SWITCH:
-                // device = db.devices.switches.find(s => s.id === d.id);
-                device.status = d.status;
-                break;
-            default:
-                break;
-        }
-        // console.log(device)
-        return device;
-    })
-
     updateDevices(scene);
+
+    // get the full object for each device in a scene
+    // const allDeviceList = Object.keys(db.devices).reduce((acc, deviceCat) => acc.concat(db.devices[deviceCat]), []);
+    // scene.devices = scene.devices.map(d => {
+    //     const device = allDeviceList.find(dev => dev.id === d.id);
+
+    //     if (!device) return null;
+
+    //     device.status = d.status;
+    //     return device;
+
+    //     switch(device.deviceType) {
+    //         case deviceTypes.LIGHT_MULTICOLOR:
+    //         case deviceTypes.LIGHT_UNICOLOR_DIMMABLE:
+    //         case deviceTypes.LIGHT_UNICOLOR_NONDIMMABLE:
+    //             // device = db.devices.lights.find(l => l.id === d.id);
+    //             device.status = d.status;
+    //             break;
+    //         case deviceTypes.SWITCH:
+    //             // device = db.devices.switches.find(s => s.id === d.id);
+    //             device.status = d.status;
+    //             break;
+    //         default:
+    //             break;
+    //     }
+    //     // console.log(device)
+    //     return device;
+    // })
+
+    // updateDevices(scene);
 }
 
 /**
@@ -241,12 +256,9 @@ const addOrUpdateScene = ({ scene }) => {
 }
 
 
-
-
-
-
-
-
+/**
+ * @desc emit the database to any connected client browsers 
+ */
 const emitBrowserInit = () => {
     io.emit('browser-init', { ...db });
 }
@@ -260,15 +272,15 @@ const emitBrowserInit = () => {
  * @event satellite-init    - initialize a satellite device
  * @event disconnect        - runs when a socket disconnects (satellite and browser)
  * 
- * @event create-scene
- * @event update-scene
- * @event delete-scene
+ * @event run-scene         - finds and updates devices in a scene
+ * @event update-scene      - creates or updates an existing scene in the database
+ * @event delete-scene      - removes a scene from the database
  * 
- * @event update-devices
- * @event toggle-device
- * @event delete-device
+ * @event update-devices    - updates device info in the database
+ * @event toggle-device     - turns a device on or off
+ * @event delete-device ** NOT IMPLEMENTED
  * 
- * @event read-database     - reads in the local database file
+ * @event read-db           - reads in the local database file
  * 
  * -- OUTGOING
  * @event browser-init      - sends all required info to the client browser
@@ -330,7 +342,7 @@ io.sockets.on('connection', socket => {
 
     socket.on('update-devices', updateDevices);
     socket.on('toggle-device', toggleDevice);
-    socket.on('read-db', readDb);
+    socket.on('read-db', data => readDb(false));
     
     // SCENES
     socket.on('run-scene', runScene);
@@ -344,7 +356,7 @@ io.sockets.on('connection', socket => {
 /**
  * STARTUP FUNCTIONS
  */
-readDb(null, true);
+readDb(true);   // read in the database and set all devices to disconnected
 
 // start the main server 
 http.listen(PORT, () => {

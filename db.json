@@ -7,7 +7,7 @@
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
                 "active": true,
-                "connected": true,
+                "connected": false,
                 "status": {
                     "red": 1,
                     "green": 64,
@@ -20,7 +20,7 @@
                 "deviceType": "LIGHT_MULTICOLOR",
                 "deviceCategory": "lights",
                 "active": true,
-                "connected": true,
+                "connected": false,
                 "status": {
                     "red": 1,
                     "green": 64,
