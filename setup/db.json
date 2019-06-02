@@ -1,4 +1,8 @@
 {
-	"lights": [],
-	"scenes": []
+    "devices": {
+        "lights": [],
+        "switches": []
+    },
+    "scenes": [],
+    "groups": []
 }
