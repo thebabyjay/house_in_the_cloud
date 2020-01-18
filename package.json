@@ -8,7 +8,7 @@
     "dev": "npm run start:dev",
     "prod": "npm run start:prod",
     "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
-    "start:prod": "concurrently \"sudo node server.js production\" \"npm run client:prod\"",
+    "start:prod": "sudo node server.js production",
     "start:dev": "concurrently \"nodemon server.js\" \"npm run client\"",
     "server:prod": "sudo node server.js production",
     "main": "sudo node server.js",
@@ -16,8 +16,8 @@
     "client": "cd client && npm run serve",
     "client:prod": "cd client && npm run prod",
     "install": "cd client && npm install",
-    "prestart": "node ./.scripts/prestart.js",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "prestart": "node ./.scripts/prestart.js"
   },
   "keywords": [],
   "author": "",
