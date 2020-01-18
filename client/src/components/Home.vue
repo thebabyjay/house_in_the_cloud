@@ -114,6 +114,10 @@ import MultiColorLightCheckbox from './MultiColorLightCheckbox';
 import Scene from './scene/Scene';
 import RgbSliders from './RgbSliders';
 
+const mainServerUrl = process.env.NODE_ENV === 'production' 
+  ? 'https://casa-codes.herokuapp.com'
+  : `${window.location.hostname}:3000`
+
 export default {
   name: 'Home',
   components: {
@@ -125,7 +129,7 @@ export default {
     RgbSliders,
   },
   data() {
-    const mainServerUrl = `${window.location.hostname}:3000`
+    // const mainServerUrl = `${window.location.hostname}:3000`
     return {
       socket: io(mainServerUrl),      // creates websocket connection
       db: {},

@@ -10,10 +10,12 @@
     "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
     "start:prod": "concurrently \"sudo node server.js production\" \"npm run client\"",
     "start:dev": "concurrently \"nodemon server.js\" \"npm run client\"",
+    "server:prod": "sudo node server.js production",
     "main": "sudo node server.js",
     "satellite": "sudo node satellite.js",
     "client": "cd client && npm run serve",
     "install": "cd client && npm install",
+    "prestart": "node ./.scripts/prestart.js",
     "build": "cd client && npm run build"
   },
   "keywords": [],
@@ -22,8 +24,8 @@
   "dependencies": {
     "concurrently": "^4.1.0",
     "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
     "express": "^4.16.4",
-    "pigpio": "^1.2.2",
     "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0",
     "vue-socket.io": "^3.0.5",
