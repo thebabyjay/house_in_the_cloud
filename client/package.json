@@ -1,13 +1,15 @@
 {
-  "name": "vue_boo",
+  "name": "house_in_the_cloud_client",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "build": "./node_modules/\\@vue/cli-service/bin/vue-cli-service.js build",
+    "lint": "vue-cli-service lint",
+    "prod": "npm run build && serve -d ./dist -p 80"
   },
   "dependencies": {
+    "serve": "^11.3.0",
     "vue": "^2.6.6",
     "vue-socket.io": "^3.0.5",
     "vuetify": "^1.5.5"

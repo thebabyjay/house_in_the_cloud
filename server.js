@@ -17,7 +17,7 @@ const deviceTemplates = require("./device/templates"); // a database template fo
  */
 // const isProduction = process.argv[2] === "production";
 const isProduction = process.env.NODE_ENV || false;
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const sockets = {};
 let db = {};
