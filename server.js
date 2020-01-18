@@ -23,7 +23,14 @@ const sockets = {};
 let db = {};
 
 // setup CORS
-cors();
+// cors();
+
+// Add headers
+const origin =
+  process.env.NODE_ENV === "production" ? "https://homectrl.netlify.com/" : "*";
+// : 'https://squaresgame.online'
+// app.use(cors({ origin: 'http://localhost:8080', credentials: true }))
+app.use(cors({ origin: origin }));
 
 /**
  * FUNCTIONS
