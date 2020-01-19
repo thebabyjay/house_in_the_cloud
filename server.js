@@ -30,7 +30,7 @@ const origin =
   process.env.NODE_ENV === "production" ? "https://homectrl.netlify.com" : "*";
 // : 'https://squaresgame.online'
 // app.use(cors({ origin: 'http://localhost:8080', credentials: true }))
-cors();
+cors(); 
 // app.use();
 
 /**
