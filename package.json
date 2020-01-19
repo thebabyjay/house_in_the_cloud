@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "sudo node server.js production",
+    "start": "node server.js production",
     "dev": "concurrently \"nodemon server.js\" \"npm run client\"",
     "server:prod": "sudo node server.js production",
     "main": "sudo node server.js",
