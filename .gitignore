@@ -4,3 +4,5 @@ node_modules/
 /db_backup.json
 /db_old.json
 /db.json
+.env
+client/.env
